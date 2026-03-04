@@ -62,19 +62,27 @@ cp .env.example .env
 # Edit .env with your keys
 ```
 
-### 3. Run Agents
-You can run agents individually using:
+### 3. Run Agents (One Command)
+You can start all 15 agents and the Web API in one go for local operation:
+```powershell
+# In the root project directory
+$env:PYTHONPATH = "."
+python start_quantix.py
+```
+
+### 4. Running Individual Agents (Manual Control)
+If you prefer manual control:
 ```powershell
 # Set PYTHONPATH for Windows/Linux
 $env:PYTHONPATH = "."
 python -m backend.quantix_core.agents.data_fetcher
 ```
-Or run the Web API Dashboard:
+Or run the Web API Dashboard alone:
 ```powershell
 python -m backend.quantix_core.api.main
 ```
 
-### 4. Running Tests
+### 5. Running Tests
 The system includes comprehensive mock pipeline tests that do not require a real Redis or DB:
 ```powershell
 python -m tests.test_full_pipeline
