@@ -1598,6 +1598,17 @@
             </a>
 
             <a href="javascript:void(0)" class="nav-link disabled-link">API</a>
+            <div class="stats-strip"
+                style="display:flex; gap:12px; margin-left:12px; padding:0 12px; border-left:1px solid var(--border-subtle); align-items:center;">
+                <div
+                    style="font-size:0.65rem; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.5px; display:flex; gap:4px;">
+                    SIGNALS: <span id="total-sigs" style="color:var(--text-primary); font-weight:800;">--</span>
+                </div>
+                <div
+                    style="font-size:0.65rem; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.5px; display:flex; gap:4px;">
+                    WIN RATE: <span id="win-rate" style="color:var(--trade-up); font-weight:800;">--%</span>
+                </div>
+            </div>
             <a href="javascript:void(0)" class="nav-link disabled-link">Contact</a>
             <a href="javascript:void(0)" class="nav-link disabled-link">Legal</a>
         </div>
@@ -2435,10 +2446,16 @@
                 }
 
                 // 3. Fetch Stats for Header
-                const statsJson = await fetchWithFallback('/stats');
-                if (statsJson.total_signals !== undefined) {
-                    document.getElementById('total-sigs').textContent = statsJson.total_signals;
-                    document.getElementById('win-rate').textContent = (statsJson.win_rate * 100).toFixed(1) + '%';
+                try {
+                    const statsJson = await fetchWithFallback('/stats');
+                    if (statsJson && statsJson.total_signals !== undefined) {
+                        const totalEl = document.getElementById('total-sigs');
+                        const winEl = document.getElementById('win-rate');
+                        if (totalEl) totalEl.textContent = statsJson.total_signals;
+                        if (winEl) winEl.textContent = (statsJson.win_rate * 100).toFixed(1) + '%';
+                    }
+                } catch (statsErr) {
+                    console.warn("Stats fetch failed, skipping UI update:", statsErr);
                 }
 
                 renderSignalView();
@@ -2846,9 +2863,11 @@
 
             data.prevPrice = data.price;
 
-            document.getElementById('total-sigs').textContent = data.sigs.length;
+            const totalSigsEl = document.getElementById('total-sigs');
+            const winRateEl = document.getElementById('win-rate');
+            if (totalSigsEl) totalSigsEl.textContent = data.sigs.length;
             const wins = data.sigs.filter(s => s.result === 'PROFIT').length;
-            document.getElementById('win-rate').textContent = data.sigs.length > 0 ? ((wins / data.sigs.length) * 100).toFixed(1) + '%' : '0.0%';
+            if (winRateEl) winRateEl.textContent = data.sigs.length > 0 ? ((wins / data.sigs.length) * 100).toFixed(1) + '%' : '0.0%';
         }
 
         // Social Sharing Logic
