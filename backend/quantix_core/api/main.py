@@ -7,8 +7,10 @@ FastAPI server cho dashboard và monitoring.
 import uvicorn
 from datetime import datetime, timezone
 from fastapi import FastAPI
+from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 from loguru import logger
+import os
 
 from backend.quantix_core.config.settings import settings
 from backend.quantix_core.database.connection import db
@@ -29,14 +31,19 @@ app.add_middleware(
 )
 
 
-# ── Health & Status ──────────────────────────────────────────────
+# ── Dashboard UI ─────────────────────────────────────────────────
 
 @app.get("/")
 def root():
+    """Serve the Dashboard HTML UI."""
+    index_path = os.path.join(os.getcwd(), "index.html")
+    if os.path.exists(index_path):
+        return FileResponse(index_path)
     return {
         "name": settings.APP_NAME,
         "version": settings.APP_VERSION,
         "status": "running",
+        "message": "Dashboard UI (index.html) not found in root.",
         "timestamp": datetime.now(timezone.utc).isoformat(),
     }
 
