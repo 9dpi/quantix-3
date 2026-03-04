@@ -58,7 +58,31 @@ END
 $$;
 
 
--- 4. Shadow Comparison Log (Phase 5)
+-- 4. Signal Validation Table (Trader Proof)
+CREATE TABLE IF NOT EXISTS fx_signal_validation (
+    id BIGSERIAL PRIMARY KEY,
+    signal_id UUID,
+    check_type TEXT,
+    validator_price FLOAT,
+    validator_candle JSONB,
+    is_discrepancy BOOLEAN DEFAULT FALSE,
+    meta_data JSONB DEFAULT '{}',
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 5. AI Analysis Heartbeat Table
+CREATE TABLE IF NOT EXISTS fx_analysis_log (
+    id BIGSERIAL PRIMARY KEY,
+    asset TEXT,
+    status TEXT,
+    confidence FLOAT,
+    strength FLOAT,
+    refinement TEXT,
+    meta_data JSONB DEFAULT '{}',
+    timestamp TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 6. Shadow Comparison Log (Phase 5)
 -- So sánh kết quả giữa hệ thống cũ và mới
 CREATE TABLE IF NOT EXISTS shadow_comparison_log (
     id BIGSERIAL PRIMARY KEY,

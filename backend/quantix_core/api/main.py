@@ -61,20 +61,21 @@ def health_check():
 # ── Signals ──────────────────────────────────────────────────────
 
 @app.get("/api/v1/signals")
-def get_signals(limit: int = 20, status: str = None):
+def get_signals(limit: int = 50, state: str = None):
     """Get recent signals."""
     try:
         query = db.client.table(settings.TABLE_SIGNALS).select("*").order(
             "generated_at", desc=True
         ).limit(limit)
         
-        if status:
-            query = query.eq("status", status)
+        if state:
+            query = query.eq("state", state)
         
         res = query.execute()
-        return {"signals": res.data or [], "count": len(res.data or [])}
+        return {"signals": res.data or [], "count": len(res.data or []), "success": True}
     except Exception as e:
-        return {"error": str(e), "signals": []}
+        logger.error(f"Error fetching signals: {e}")
+        return {"error": str(e), "signals": [], "success": False}
 
 
 @app.get("/api/v1/signals/active")
@@ -144,6 +145,33 @@ def get_stats():
         }
     except Exception as e:
         return {"error": str(e)}
+
+# ── Logs & Validation ──────────────────────────────────────────
+
+@app.get("/api/v1/validation-logs")
+def get_validation_logs(limit: int = 50):
+    """Get signal validation logs."""
+    try:
+        res = db.client.table(settings.TABLE_VALIDATION).select("*").order(
+            "created_at", desc=True
+        ).limit(limit).execute()
+        return {"data": res.data or [], "count": len(res.data or []), "success": True}
+    except Exception as e:
+        logger.warning(f"Validation logs table issue: {e}")
+        return {"data": [], "count": 0, "success": True}
+
+
+@app.get("/api/v1/analysis-logs")
+def get_analysis_logs(limit: int = 20):
+    """Get AI analysis logs."""
+    try:
+        res = db.client.table(settings.TABLE_ANALYSIS_LOG).select("*").order(
+            "timestamp", desc=True
+        ).limit(limit).execute()
+        return {"data": res.data or [], "count": len(res.data or []), "success": True}
+    except Exception as e:
+        logger.warning(f"Analysis logs table issue: {e}")
+        return {"data": [], "count": 0, "success": True}
 
 
 # ── Entrypoint ───────────────────────────────────────────────────
