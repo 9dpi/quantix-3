@@ -2377,14 +2377,18 @@
         }
 
         // CONFIG: Quantix AI Core Local API
-        // CONFIG: Quantix AI Core Local API
-        const API_BASE = window.location.origin.includes('localhost') ? 'http://localhost:8000/api/v1' : '/api/v1';
+        // CONFIG: Quantix AI Core API
+        // If running on localhost, use relative path. If on GitHub Pages, try to connect to local 8000 or a custom URL.
+        const LOCAL_API = 'http://localhost:8000/api/v1';
+        const API_BASE = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+            ? '/api/v1'
+            : LOCAL_API;
 
         async function syncDatabase() {
             try {
                 // 1. Fetch Active Signals
                 const activeJson = await fetchWithFallback('/signals/active');
-                
+
                 if (activeJson.signals && activeJson.signals.length > 0) {
                     const s = activeJson.signals[0]; // Take most recent active
                     const isNew = !data.active || data.active.id !== s.id;
@@ -2435,12 +2439,12 @@
                 renderTable();
             } catch (err) {
                 console.error("DB Sync Error:", err);
-                
+
                 document.getElementById('connection-status').textContent = "DISCONNECTED";
                 document.getElementById('connection-status').style.color = "var(--trade-down)";
                 document.getElementById('connection-pulse').className = "pulse";
                 document.getElementById('connection-pulse').style.background = "var(--trade-down)";
-                
+
                 addLog(`Linker Error: API Offline or Network Issue`, "danger");
             }
         }
