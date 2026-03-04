@@ -1,0 +1,178 @@
+version: '3.8'
+
+services:
+  # ========== Infrastructure ==========
+  redis:
+    image: redis:7-alpine
+    container_name: quantix-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  # ========== Stage 1: Data Agents ==========
+  agent-data-fetcher:
+    build: .
+    container_name: quantix-data-fetcher
+    command: python -m backend.quantix_core.agents.data_fetcher
+    env_file: .env
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  agent-data-quality:
+    build: .
+    container_name: quantix-data-quality
+    command: python -m backend.quantix_core.agents.data_quality
+    env_file: .env
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # ========== Stage 2: Analysis Agents ==========
+  agent-bos-detector:
+    build: .
+    container_name: quantix-bos-detector
+    command: python -m backend.quantix_core.agents.bos_detector
+    env_file: .env
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  agent-fvg-locator:
+    build: .
+    container_name: quantix-fvg-locator
+    command: python -m backend.quantix_core.agents.fvg_locator
+    env_file: .env
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  agent-liquidity:
+    build: .
+    container_name: quantix-liquidity
+    command: python -m backend.quantix_core.agents.liquidity
+    env_file: .env
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # ========== Stage 3: Validation Agents ==========
+  agent-confidence:
+    build: .
+    container_name: quantix-confidence
+    command: python -m backend.quantix_core.agents.confidence
+    env_file: .env
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  agent-session-filter:
+    build: .
+    container_name: quantix-session-filter
+    command: python -m backend.quantix_core.agents.session_filter
+    env_file: .env
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  agent-price-validator:
+    build: .
+    container_name: quantix-price-validator
+    command: python -m backend.quantix_core.agents.price_validator
+    env_file: .env
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # ========== Stage 4: Risk Management Agents ==========
+  agent-rr-optimizer:
+    build: .
+    container_name: quantix-rr-optimizer
+    command: python -m backend.quantix_core.agents.rr_optimizer
+    env_file: .env
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  agent-circuit-breaker:
+    build: .
+    container_name: quantix-circuit-breaker
+    command: python -m backend.quantix_core.agents.circuit_breaker
+    env_file: .env
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  agent-position-sizing:
+    build: .
+    container_name: quantix-position-sizing
+    command: python -m backend.quantix_core.agents.position_sizing
+    env_file: .env
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # ========== Stage 5: Decision & Execution ==========
+  agent-dispatcher:
+    build: .
+    container_name: quantix-dispatcher
+    command: python -m backend.quantix_core.agents.dispatcher
+    env_file: .env
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  agent-watcher:
+    build: .
+    container_name: quantix-watcher
+    command: python -m backend.quantix_core.agents.watcher
+    env_file: .env
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  agent-healing:
+    build: .
+    container_name: quantix-healing
+    command: python -m backend.quantix_core.agents.healing
+    env_file: .env
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # ========== Web API ==========
+  web:
+    build: .
+    container_name: quantix-web
+    command: python -m backend.quantix_core.api.main
+    env_file: .env
+    ports:
+      - "8000:8000"
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  redis_data:

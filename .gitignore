@@ -1,0 +1,47 @@
+# Quantix AI Core - Multi-Agent Edition
+# .gitignore
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Virtual Environment
+.venv/
+.venv311/
+venv/
+env/
+
+# Environment
+.env
+.env.local
+.env.production
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+logs/
+*.log
+*.jsonl
+
+# Data
+*.zip
+*.tar.gz
+snapshots/
+
+# Redis
+dump.rdb
