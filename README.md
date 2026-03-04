@@ -63,12 +63,13 @@ cp .env.example .env
 ```
 
 ### 3. Run Agents (One Command)
-You can start all 15 agents and the Web API in one go for local operation:
-```powershell
-# In the root project directory
-$env:PYTHONPATH = "."
-python start_quantix.py
-```
+You can start all 15 agents and the Web API in one go:
+- **Windows (Recommended):** Just double-click `run_quantix.bat`
+- **Manual (PowerShell/CMD):**
+  ```powershell
+  $env:PYTHONPATH = "."
+  python start_quantix.py
+  ```
 
 ### 4. Running Individual Agents (Manual Control)
 If you prefer manual control:
