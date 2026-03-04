@@ -5,9 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Signal Genius AI | Institutional Trading</title>
-    <link rel="stylesheet" href="command-center.css">
+    <link rel="stylesheet" href="style.css">
     <script src="https://unpkg.com/lucide@latest"></script>
-    <script src="./signal_record_config.js"></script>
     <script src="simulator.js"></script>
     <link
         href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap"
@@ -2175,7 +2174,14 @@
     </main>
 
     <script>
-        // Quantix Configuration is loaded from signal_record_config.js
+        // Quantix Configuration
+        const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+        window.CONFIG = {
+            AI_CORE_API: isLocal ? 'http://localhost:8000/api/v1' : (window.location.origin.includes('github.io') ? 'http://localhost:8000/api/v1' : '/api/v1'),
+            USE_SUPABASE_FALLBACK: false,
+            SUPABASE_REST: '',
+            SUPABASE_KEY: ''
+        };
 
         async function fetchWithFallback(endpoint, options = {}) {
             try {
@@ -2394,12 +2400,12 @@
                     const isNew = !data.active || data.active.id !== s.id;
                     data.active = {
                         id: s.id,
-                        side: s.side,
+                        side: s.direction || s.side,
                         entry: s.entry_price,
-                        tp: s.tp_price,
-                        sl: s.sl_price,
+                        tp: s.take_profit,
+                        sl: s.stop_loss,
                         status: s.state,
-                        conf: calcConfidence(s.confidence || 0),
+                        conf: calcConfidence(s.release_confidence || s.confidence || 0),
                         generatedAt: s.generated_at ? new Date(s.generated_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }) : '--:--',
                         closedAt: '--:--',
                         validUntil: '--:--'
@@ -2416,15 +2422,15 @@
                 if (historyJson.signals) {
                     data.sigs = historyJson.signals.map(s => ({
                         id: s.id,
-                        side: s.side,
+                        side: s.direction || s.side,
                         entry: s.entry_price,
-                        tp: s.tp_price,
-                        sl: s.sl_price,
-                        result: s.state.includes('TP') ? 'PROFIT' : (s.state.includes('SL') ? 'LOSS' : 'NEUTRAL'),
+                        tp: s.take_profit,
+                        sl: s.stop_loss,
+                        result: s.result || (s.state.includes('TP') ? 'PROFIT' : (s.state.includes('SL') ? 'LOSS' : 'NEUTRAL')),
                         status: s.state,
-                        conf: calcConfidence(s.confidence || 0),
+                        conf: calcConfidence(s.release_confidence || s.confidence || 0),
                         generatedAt: s.generated_at ? new Date(s.generated_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }) : '--:--',
-                        closedAt: s.updated_at ? new Date(s.updated_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }) : '--:--'
+                        closedAt: s.closed_at || s.updated_at ? new Date(s.closed_at || s.updated_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }) : '--:--'
                     }));
                 }
 
