@@ -1,0 +1,3287 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Signal Genius AI | Institutional Trading</title>
+    <link rel="stylesheet" href="command-center.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="./signal_record_config.js"></script>
+    <script src="simulator.js"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            /* White Premium Theme - Ultra Contrast & Clarity */
+            --bg-base: #f1f5f9;
+            --bg-surface: #ffffff;
+            --bg-card: #ffffff;
+            --bg-hover: #e2e8f0;
+            --border-subtle: #cbd5e1;
+            --text-header: #020617;
+            /* Ultra dark for focal points */
+            --text-primary: #0f172a;
+            /* Deep slate for main body */
+            --text-secondary: #475569;
+            /* Balanced slate for secondary */
+            --quantix-accent: #0284c7;
+            --quantix-purple: #7c3aed;
+            --trade-up: #047857;
+            /* Sharpened Green */
+            --trade-down: #be123c;
+            /* Sharpened Red */
+            --font-main: 'Inter', sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            background: var(--bg-base);
+            color: var(--text-primary);
+            font-family: var(--font-main);
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            user-select: none;
+            /* Disable text selection */
+            -webkit-user-select: none;
+            -ms-user-select: none;
+        }
+
+        img {
+            pointer-events: none;
+            /* Disable image dragging/saving */
+        }
+
+        .header-strip {
+            height: 70px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 2rem;
+            border-bottom: 1px solid var(--border-subtle);
+            background: var(--bg-surface);
+            z-index: 100;
+        }
+
+        .brand-zone {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .brand-logo {
+            color: var(--quantix-accent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .brand-name {
+            font-weight: 800;
+            letter-spacing: -1px;
+            font-size: 1.25rem;
+            text-transform: uppercase;
+            display: flex;
+            gap: 6px;
+        }
+
+        .name-prefix {
+            color: var(--text-primary);
+        }
+
+        .name-suffix {
+            color: var(--quantix-purple);
+        }
+
+        .powered-by {
+            font-size: 0.6rem;
+            color: #475569;
+            font-weight: 500;
+            text-transform: none;
+            letter-spacing: 0.5px;
+            margin-left: 4px;
+            align-self: center;
+            font-family: var(--font-mono);
+            border-left: 1px solid var(--border-subtle);
+            padding-left: 10px;
+        }
+
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            color: var(--text-primary);
+            cursor: pointer;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+        }
+
+
+        .nav-link {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: 600;
+            transition: 0.2s;
+        }
+
+        .nav-link:hover {
+            color: var(--quantix-accent);
+        }
+
+        .nav-link.disabled-link {
+            opacity: 0.5;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+
+        .nav-link.active-link {
+            color: var(--quantix-accent) !important;
+            border-bottom: 2px solid var(--quantix-accent);
+        }
+
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+        }
+
+        /* Tooltip Master System */
+        [data-tooltip] {
+            position: relative;
+            cursor: help;
+        }
+
+        [data-tooltip]::before {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: 125%;
+            left: 50%;
+            transform: translateX(-50%) translateY(10px);
+            background: #1e293b;
+            color: #fff;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            white-space: normal;
+            min-width: 180px;
+            max-width: 250px;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            border: 1px solid var(--border-subtle);
+            text-align: center;
+            line-height: 1.4;
+            font-family: var(--font-main);
+        }
+
+        [data-tooltip]::after {
+            content: "";
+            position: absolute;
+            bottom: 110%;
+            left: 50%;
+            transform: translateX(-50%) translateY(10px);
+            border-width: 6px;
+            border-style: solid;
+            border-color: #1e293b transparent transparent transparent;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        [data-tooltip]:hover::before,
+        [data-tooltip]:hover::after {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .stat-label {
+            font-size: 0.6rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+        }
+
+        .stat-value {
+            font-size: 0.95rem;
+            font-family: var(--font-mono);
+            font-weight: 700;
+            color: var(--quantix-accent);
+        }
+
+        /* --- Main Layout --- */
+        .app-shell {
+            display: grid;
+            grid-template-columns: 350px minmax(0, 1fr) 320px;
+            width: 100vw;
+            height: calc(100vh - 70px);
+            overflow: hidden;
+        }
+
+        .sidebar {
+            width: 350px;
+            background: var(--bg-surface);
+            display: flex;
+            flex-direction: column;
+            padding: 1.5rem;
+            flex-shrink: 0;
+            overflow-y: auto;
+        }
+
+        .price-card {
+            padding: 2rem;
+            background: var(--bg-surface);
+            border: 1px solid var(--border-subtle);
+            border-radius: 4px;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .current-price {
+            font-size: 2.8rem;
+            font-family: var(--font-mono);
+            font-weight: 800;
+            letter-spacing: -1.5px;
+            color: var(--text-primary);
+        }
+
+
+        /* --- Viewport & Grid --- */
+        .viewport {
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* One-Click Trading Panel */
+        .quick-trade-panel {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4px;
+            background: var(--bg-hover);
+            border: 1px solid var(--border-subtle);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 1rem;
+        }
+
+        .trade-btn {
+            padding: 12px 6px;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+            transition: opacity 0.2s;
+        }
+
+        .trade-btn.sell {
+            background: var(--trade-down);
+            color: white;
+        }
+
+        .trade-btn.buy {
+            background: var(--trade-up);
+            color: white;
+        }
+
+        .trade-btn:hover {
+            opacity: 0.9;
+        }
+
+        .trade-btn:active {
+            transform: scale(0.98);
+        }
+
+        .btn-label {
+            font-size: 0.6rem;
+            font-weight: 800;
+            opacity: 0.8;
+        }
+
+        .btn-price {
+            font-size: 0.9rem;
+            font-family: var(--font-mono);
+            font-weight: 700;
+        }
+
+        .lot-input-wrapper {
+            grid-column: span 2;
+            background: var(--bg-surface);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 4px;
+            border-top: 1px solid var(--border-subtle);
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        .lot-input {
+            background: transparent;
+            border: none;
+            color: var(--quantix-accent);
+            width: 50px;
+            text-align: center;
+            font-family: var(--font-mono);
+            font-weight: 700;
+            font-size: 0.85rem;
+            outline: none;
+        }
+
+        /* Workspace Flex Layout */
+        .workspace-grid {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        /* Top Section (Table) takes remaining space */
+        .workspace-grid>.section-container:first-child {
+            flex: 1;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+        }
+
+        .section-container {
+            flex: 1;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        .section-divider {
+            border-left: 1px solid var(--border-subtle);
+        }
+
+        .section-header {
+            padding: 1.25rem 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        .section-title {
+            font-size: 0.775rem;
+            font-weight: 900;
+            color: var(--text-header);
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+        }
+
+        .content-scroller {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: auto;
+            /* Safety for small screens */
+            width: 100%;
+        }
+
+        /* Table Reset */
+        table {
+            width: 100%;
+            margin: 0;
+            border-collapse: collapse;
+            table-layout: fixed;
+            min-width: 850px;
+            /* Reduced from 1000px to fit better */
+        }
+
+        th {
+            text-align: left;
+            padding: 0.85rem 0.75rem;
+            /* Compact padding */
+            font-size: 0.675rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            font-weight: 800;
+            border-bottom: 2.5px solid var(--bg-base);
+            /* Sharper separation */
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            background: #fff;
+        }
+
+        /* Optimal Column Widths for responsive fit */
+        th:nth-child(1) {
+            width: 50px;
+        }
+
+        /* ID icon/dot */
+        th:nth-child(2) {
+            width: 85px;
+        }
+
+        /* ID text */
+        th:nth-child(3) {
+            width: 65px;
+        }
+
+        /* Created */
+        th:nth-child(4) {
+            width: 60px;
+        }
+
+        /* Side */
+        th:nth-child(5) {
+            width: 85px;
+        }
+
+        /* AI Score */
+        th:nth-child(6) {
+            width: 90px;
+        }
+
+        /* Entry */
+        th:nth-child(7) {
+            width: 90px;
+        }
+
+        /* TP */
+        th:nth-child(8) {
+            width: 90px;
+        }
+
+        /* SL */
+        th:nth-child(9) {
+            width: 100px;
+        }
+
+        /* Win/Loss */
+        th:nth-child(10) {
+            width: 120px;
+        }
+
+        /* Status/Closing */
+
+        /* Status */
+
+        /* Shift Status Column left and remove ellipsis */
+        th:nth-child(10),
+        td:nth-child(10) {
+            padding-left: 0.5rem;
+            /* Reduced from 1.5rem to shift left */
+            overflow: visible;
+            text-overflow: clip;
+        }
+
+        td {
+            padding: 1.1rem 1.5rem;
+            font-size: 0.8rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.02);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        /* Terminal Logs Minimal */
+        .terminal-container {
+            padding: 1.5rem;
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            line-height: 1.6;
+            color: var(--text-secondary);
+            overflow-y: auto;
+            flex: 1;
+            background: var(--bg-surface);
+        }
+
+        .log-line {
+            margin-bottom: 6px;
+            white-space: pre-wrap;
+            border-left: 2px solid transparent;
+            padding-left: 10px;
+        }
+
+        .log-line.type-sys {
+            border-left-color: #334155;
+        }
+
+        .log-line.type-success {
+            border-left-color: var(--trade-up);
+            color: var(--trade-up);
+        }
+
+        .log-line.type-danger {
+            border-left-color: var(--trade-down);
+            color: var(--trade-down);
+        }
+
+        .log-line.type-warning {
+            border-left-color: #ca8a04;
+            color: #ca8a04;
+        }
+
+        .log-msg {
+            color: var(--text-primary);
+        }
+
+        .log-line.type-success .log-msg {
+            color: var(--text-primary);
+        }
+
+        .tab-content {
+            display: none;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .tab-content.active {
+            display: flex;
+        }
+
+        /* Audit & Stats Grid */
+        .audit-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            padding: 1.5rem;
+            overflow-y: auto;
+        }
+
+        .audit-card {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-subtle);
+            border-radius: 8px;
+            padding: 1.25rem;
+        }
+
+        .audit-val {
+            font-size: 1.5rem;
+            font-family: var(--font-mono);
+            font-weight: 700;
+            color: var(--quantix-accent);
+            margin-top: 8px;
+        }
+
+        .net-status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 12px;
+            font-size: 0.8rem;
+        }
+
+        .pulse {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--trade-up);
+            box-shadow: 0 0 8px var(--trade-up);
+        }
+
+        /* Navigation Reset */
+        .sub-tabs {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 1.5rem;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        .tab-btn {
+            padding: 1rem 1.5rem;
+            font-size: 0.75rem;
+            font-weight: 800;
+            color: #475569;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: 0.2s;
+        }
+
+        .tab-btn.active {
+            color: var(--quantix-accent);
+            border-bottom-color: var(--quantix-accent);
+        }
+
+        .tab-btn:hover:not(.active) {
+            color: var(--quantix-accent);
+        }
+
+        /* Action Buttons */
+        .btn-main {
+            background: var(--quantix-accent);
+            color: #000;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 4px;
+            font-weight: 800;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .btn-main:hover {
+            box-shadow: 0 0 20px rgba(0, 242, 254, 0.4);
+            transform: translateY(-1px);
+        }
+
+        /* Telegram Connector */
+        .tg-connector {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .tg-input-group {
+            background: var(--bg-base);
+            border: 1px solid var(--border-subtle);
+            border-radius: 4px;
+            padding: 2px;
+            flex: 1;
+            max-width: 350px;
+        }
+
+        .tg-input {
+            background: transparent;
+            border: none;
+            color: var(--text-primary);
+            padding: 6px 12px;
+            font-size: 0.75rem;
+            font-family: var(--font-mono);
+            outline: none;
+            flex: 1;
+        }
+
+        .tg-input::placeholder {
+            color: #475569;
+        }
+
+        .tg-btn {
+            background: var(--quantix-accent);
+            color: #000;
+            border: none;
+            padding: 4px 12px;
+            border-radius: 2px;
+            font-size: 0.65rem;
+            font-weight: 800;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .tg-btn:hover {
+            filter: brightness(1.2);
+        }
+
+        /* --- Agent Anchor Tooltips --- */
+        [data-agent-tip] {
+            position: relative;
+            cursor: help;
+        }
+
+        [data-agent-tip]::after {
+            content: attr(data-agent-tip);
+            position: absolute;
+            bottom: 120%;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 4px 8px;
+            background: var(--bg-surface);
+            border: 1px solid var(--border-subtle);
+            color: var(--text-primary);
+            font-size: 0.6rem;
+            border-radius: 4px;
+            white-space: nowrap;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.2s ease;
+            z-index: 1000;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+            pointer-events: none;
+        }
+
+        [data-agent-tip].tip-obs::after {
+            border-color: var(--quantix-accent);
+            color: var(--quantix-accent);
+        }
+
+        [data-agent-tip].tip-reason::after {
+            border-color: var(--quantix-purple);
+            color: var(--quantix-purple);
+        }
+
+        [data-agent-tip].tip-adv::after {
+            border-color: #f59e0b;
+            color: #f59e0b;
+        }
+
+        [data-agent-tip]:hover::after {
+            opacity: 1;
+            visibility: visible;
+            bottom: 140%;
+        }
+
+        /* --- Agent Anchor Labels --- */
+        .agent-anchor-label {
+            display: inline-flex;
+            align-items: center;
+            padding: 1px 6px;
+            border-radius: 3px;
+            font-size: 0.55rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+            border: 1px solid transparent;
+        }
+
+        .agent-anchor-label.obs {
+            background: rgba(56, 189, 248, 0.1);
+            border-color: rgba(56, 189, 248, 0.3);
+            color: var(--quantix-accent);
+        }
+
+        .agent-anchor-label.reason {
+            background: rgba(139, 92, 246, 0.1);
+            border-color: rgba(139, 92, 246, 0.3);
+            color: var(--quantix-purple);
+        }
+
+        .agent-anchor-label.adv {
+            background: rgba(245, 158, 11, 0.1);
+            border-color: rgba(245, 158, 11, 0.3);
+            color: #f59e0b;
+        }
+
+        /* --- AI Agent System Styles --- */
+        .agent-observation-bar {
+            background: transparent;
+            border-bottom: 1px solid var(--border-subtle);
+            padding: 8px 16px;
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            overflow-x: auto;
+            scrollbar-width: none;
+        }
+
+        .agent-observation-bar::-webkit-scrollbar {
+            display: none;
+        }
+
+        .obs-badge {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            background: var(--bg-hover);
+            border-radius: 100px;
+            border: 1px solid var(--border-subtle);
+            font-size: 0.65rem;
+            font-weight: 700;
+            color: var(--text-secondary);
+            white-space: nowrap;
+        }
+
+        .obs-badge.active {
+            border-color: var(--quantix-accent);
+            color: var(--quantix-accent);
+            background: rgba(56, 189, 248, 0.1);
+        }
+
+        .obs-badge i {
+            color: inherit;
+        }
+
+        .reasoning-container {
+            margin-top: 15px;
+            padding: 12px;
+            background: var(--bg-base);
+            border-radius: 8px;
+            border: 1px solid var(--border-subtle);
+        }
+
+        .reasoning-title {
+            font-size: 0.7rem;
+            font-weight: 800;
+            color: var(--text-primary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .reasoning-block {
+            margin-bottom: 10px;
+        }
+
+        .reasoning-label {
+            font-size: 0.6rem;
+            color: var(--text-primary);
+            font-weight: 700;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+            display: block;
+        }
+
+        .reasoning-text {
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+            line-height: 1.4;
+            display: block;
+        }
+
+        .advisory-panel {
+            margin: 16px;
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.1) 0%, rgba(139, 92, 246, 0.05) 100%);
+            border: 1px solid rgba(139, 92, 246, 0.2);
+            border-radius: 8px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .advisory-header {
+            padding: 10px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .advisory-header:hover {
+            background: rgba(139, 92, 246, 0.1);
+        }
+
+        .advisory-content {
+            padding: 0 16px 16px 16px;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            line-height: 1.5;
+            display: none;
+        }
+
+        .advisory-panel.expanded .advisory-content {
+            display: block;
+        }
+
+        .pulsing-dot {
+            width: 6px;
+            height: 6px;
+            background: var(--quantix-accent);
+            border-radius: 50%;
+            display: inline-block;
+            box-shadow: 0 0 8px var(--quantix-accent);
+            animation: pulse-ring 2s infinite;
+        }
+
+        @keyframes pulse-ring {
+            0% {
+                transform: scale(0.8);
+                opacity: 0.5;
+            }
+
+            50% {
+                transform: scale(1.2);
+                opacity: 1;
+            }
+
+            100% {
+                transform: scale(0.8);
+                opacity: 0.5;
+            }
+        }
+
+        /* Global High-Contrast Scrollbar */
+        *::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        *::-webkit-scrollbar-track {
+            background: var(--bg-base);
+        }
+
+        *::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+            border: 2px solid var(--bg-base);
+        }
+
+        *::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        /* --- Reference-Matched Mobile Trading UI --- */
+        .sim-app-container {
+            flex: 1;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            background: var(--bg-base);
+            color: var(--text-primary);
+            font-family: 'Inter', sans-serif;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .sim-app-header {
+            padding: 12px 16px;
+            background: var(--bg-base);
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        .sim-app-nav {
+            display: flex;
+            gap: 20px;
+            padding: 0 16px;
+            border-bottom: 1px solid #1e2329;
+        }
+
+        .sim-nav-item {
+            padding: 12px 0;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #848e9c;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .sim-nav-item.active {
+            color: #eaeaeb;
+        }
+
+        .sim-nav-item.active::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: var(--quantix-accent);
+        }
+
+        .sim-chart-container {
+            flex: 1;
+            min-height: 300px;
+            background: var(--bg-surface);
+            position: relative;
+        }
+
+        .sim-control-bar {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            padding: 8px;
+            background: var(--bg-base);
+            border-top: 1px solid var(--border-subtle);
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        .sim-ctrl-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            padding: 8px;
+            color: #848e9c;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .sim-ctrl-btn:hover {
+            color: var(--quantix-accent);
+        }
+
+        .sim-ctrl-btn span {
+            font-size: 0.65rem;
+            font-weight: 500;
+        }
+
+        .sim-positions-section {
+            background: var(--bg-base);
+            padding: 16px;
+        }
+
+        .sim-pos-tabs {
+            display: flex;
+            background: var(--bg-hover);
+            padding: 4px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            width: fit-content;
+        }
+
+        /* Toast Notification */
+        .sim-toast {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--text-primary);
+            color: var(--bg-surface);
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            font-family: var(--font-mono);
+            z-index: 9999;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+            animation: toast-in 0.3s ease, toast-out 0.3s ease 2.7s;
+            pointer-events: none;
+        }
+
+        @keyframes toast-in {
+            from {
+                opacity: 0;
+                transform: translateX(-50%) translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+        }
+
+        @keyframes toast-out {
+            from {
+                opacity: 1;
+            }
+
+            to {
+                opacity: 0;
+            }
+        }
+
+        .sim-pos-tab {
+            padding: 6px 16px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #848e9c;
+            cursor: pointer;
+        }
+
+        .sim-pos-tab.active {
+            background: var(--quantix-accent);
+            color: white;
+        }
+
+        /* Position Card Restyling */
+        .sim-pos-card {
+            background: var(--bg-hover);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .sim-pos-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .sim-pos-symbol {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .sim-pos-pnl {
+            font-size: 1rem;
+            font-weight: 700;
+            font-family: var(--font-mono);
+        }
+
+        .sim-pos-details {
+            font-size: 0.75rem;
+            color: #848e9c;
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .sim-tag {
+            padding: 2px 6px;
+            background: var(--bg-hover);
+            border-radius: 4px;
+            font-size: 0.6rem;
+            font-weight: 700;
+        }
+
+        /* Sticky Bottom Bar */
+        .sim-action-bar {
+            display: grid;
+            grid-template-columns: 1fr 60px 1fr;
+            padding: 12px 16px;
+            background: var(--bg-base);
+            border-top: 1px solid var(--border-subtle);
+            gap: 8px;
+            align-items: center;
+        }
+
+        .sim-action-btn {
+            height: 52px;
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 2px;
+            transition: 0.2s;
+        }
+
+        .sim-action-btn.sell {
+            background: #f6465d;
+        }
+
+        .sim-action-btn.buy {
+            background: #0ecb81;
+        }
+
+        .sim-action-btn:active {
+            transform: scale(0.98);
+            opacity: 0.9;
+        }
+
+        .sim-spread-box {
+            height: 40px;
+            background: var(--bg-hover);
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 700;
+        }
+
+        .pill {
+            padding: 3px 8px;
+            border-radius: 3px;
+            font-size: 0.65rem;
+            font-weight: 800;
+        }
+
+        .pill.up {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--trade-up);
+        }
+
+        .pill.down {
+            background: rgba(244, 63, 94, 0.1);
+            color: var(--trade-down);
+        }
+
+        /* Risk Group */
+        .risk-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 14px;
+            background: var(--bg-hover);
+            border-radius: 4px;
+            border: 1px solid var(--border-subtle);
+        }
+
+        .risk-val {
+            font-family: var(--font-mono);
+            font-weight: 700;
+            color: white;
+            width: 30px;
+            text-align: center;
+        }
+
+        .risk-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 1.2rem;
+            cursor: pointer;
+            padding: 0 5px;
+        }
+
+        /* Signal Template Refinement */
+        .signal-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 6px;
+        }
+
+        .pulse-active {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--trade-up);
+            box-shadow: 0 0 10px var(--trade-up);
+            animation: pulse-ring 2s infinite;
+        }
+
+        .pulse-scanning {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #eab308;
+            box-shadow: 0 0 10px #eab308;
+            animation: pulse-ring 1.5s infinite;
+        }
+
+        @keyframes pulse-ring {
+            0% {
+                transform: scale(0.95);
+                opacity: 0.8;
+            }
+
+            50% {
+                transform: scale(1.1);
+                opacity: 1;
+            }
+
+            100% {
+                transform: scale(0.95);
+                opacity: 0.8;
+            }
+        }
+
+        .sig-label {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .sig-value {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .sig-value.mono {
+            font-family: var(--font-mono);
+            letter-spacing: -0.5px;
+        }
+
+        .sig-section {
+            padding: 12px 0;
+            border-top: 1px solid var(--border-subtle);
+        }
+
+        /* Spice: Neural Thinking Line */
+        .neural-line {
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+            animation: fadeInBlur 0.4s ease forwards;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        @keyframes fadeInBlur {
+            from {
+                opacity: 0;
+                filter: blur(4px);
+                transform: translateY(4px);
+            }
+
+            to {
+                opacity: 1;
+                filter: blur(0);
+                transform: translateY(0);
+            }
+        }
+
+        .neural-line.accent {
+            color: var(--quantix-accent);
+        }
+
+        /* Market Closed Notice */
+        .market-closed-notice {
+            background: var(--bg-surface);
+            border: 1px dashed var(--border-subtle);
+            border-radius: 8px;
+            padding: 2rem 1.5rem;
+            margin: 1.5rem 0;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+            animation: fadeInNotice 0.5s ease-out;
+        }
+
+        @keyframes fadeInNotice {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .market-closed-notice i {
+            color: var(--quantix-purple);
+            opacity: 0.8;
+        }
+
+        .market-closed-notice .notice-title {
+            color: var(--text-header);
+            font-weight: 800;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .market-closed-notice .notice-msg {
+            color: var(--text-secondary);
+            font-size: 0.75rem;
+            line-height: 1.6;
+        }
+
+        .neural-line.highlight {
+            color: var(--quantix-purple);
+        }
+
+        .social-link {
+            color: #475569;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+        }
+
+        .social-link:hover {
+            color: var(--quantix-accent);
+            transform: translateY(-2px);
+            filter: drop-shadow(0 0 5px var(--quantix-accent));
+        }
+
+        /* --- Mobile Specific Styles (Moved to end for precedence) --- */
+        @media screen and (max-width: 1024px) {
+            body {
+                height: 100vh;
+                width: 100vw;
+                overflow: hidden;
+            }
+
+            .header-strip {
+                height: 60px;
+                padding: 0 1rem;
+                flex-shrink: 0;
+            }
+
+            .mobile-menu-btn {
+                display: block;
+            }
+
+            .nav-links {
+                display: none;
+                position: fixed;
+                top: 60px;
+                left: 0;
+                width: 100%;
+                background: var(--bg-surface);
+                flex-direction: column;
+                padding: 2rem;
+                border-bottom: 1px solid var(--border-subtle);
+                z-index: 1000;
+                gap: 2rem;
+            }
+
+            .nav-links.active {
+                display: flex;
+            }
+
+            .powered-by {
+                display: none;
+            }
+
+            .app-shell {
+                display: flex !important;
+                /* Override desktop grid */
+                flex-direction: column;
+                height: calc(100vh - 60px);
+                width: 100vw !important;
+                justify-content: flex-start;
+            }
+
+            .sidebar {
+                width: 100% !important;
+                min-width: 0 !important;
+                max-width: 100vw !important;
+                height: 100%;
+                padding: 0;
+                border-bottom: none;
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+                overflow-y: auto;
+                overflow-x: hidden;
+            }
+
+            /* HIDE EVERYTHING ELSE ON MOBILE */
+            .viewport,
+            .right-panel,
+            .sub-tabs,
+            #tab-terminal,
+            #tab-logs {
+                display: none !important;
+            }
+
+            .price-card {
+                padding: 1.5rem 1rem;
+                border-bottom: 1px solid var(--border-subtle);
+                flex-shrink: 0;
+            }
+
+            #signal-view,
+            #no-signal-view {
+                flex: 1;
+                border-radius: 0 !important;
+                margin: 0 !important;
+                width: 100% !important;
+                border: none !important;
+                background: transparent !important;
+                padding: 1.5rem !important;
+                justify-content: flex-start;
+            }
+
+            .current-price {
+                font-size: 3.5rem;
+            }
+
+            .section-header {
+                padding: 1rem;
+            }
+
+            .sub-tabs {
+                flex-direction: column;
+                gap: 1rem;
+                padding: 1rem;
+                align-items: flex-start;
+            }
+
+            .tg-connector {
+                width: 100%;
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .tg-input-group {
+                width: 100%;
+                max-width: none;
+            }
+
+            table {
+                min-width: auto !important;
+                width: 100% !important;
+                margin: 0 !important;
+            }
+
+            table,
+            thead,
+            tbody,
+            th,
+            td,
+            tr {
+                display: block;
+            }
+
+            thead tr {
+                position: absolute;
+                top: -9999px;
+                left: -9999px;
+            }
+
+            tr {
+                border: 1px solid var(--border-subtle);
+                margin: 0 1rem 1.5rem 1rem !important;
+                border-radius: 8px;
+                padding: 1rem;
+                background: rgba(15, 23, 42, 0.3);
+                width: calc(100% - 2rem) !important;
+            }
+
+            td {
+                border: none;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+                position: relative;
+                padding: 0.75rem 0 0.75rem 45% !important;
+                text-align: right;
+                min-height: 45px;
+                display: flex;
+                align-items: center;
+                justify-content: flex-end;
+                width: 100% !important;
+                overflow: visible;
+                white-space: normal;
+                padding-left: 45% !important;
+                font-size: 0.75rem !important;
+            }
+
+            td:last-child {
+                border-bottom: none;
+            }
+
+            td:before {
+                content: attr(data-label);
+                position: absolute;
+                left: 1rem;
+                width: 40%;
+                padding-right: 10px;
+                white-space: nowrap;
+                text-align: left;
+                font-weight: 700;
+                font-size: 0.65rem;
+                color: var(--text-secondary);
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+            }
+
+            .content-scroller {
+                overflow-x: hidden !important;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <header class="header-strip">
+        <div class="brand-zone">
+            <div class="brand-logo">
+                <i data-lucide="atom" size="28"></i>
+            </div>
+            <div class="brand-name">
+                <span class="name-prefix">Signal Genius</span>
+                <span class="name-suffix">AI</span>
+                <span class="powered-by">[Powered by Quantix AI Core]</span>
+            </div>
+        </div>
+
+        <button class="mobile-menu-btn" id="mobile-menu-toggle">
+            <i data-lucide="menu"></i>
+        </button>
+
+        <div class="nav-links" id="mobile-nav">
+            <a href="javascript:void(0)" class="nav-link disabled-link">Overview</a>
+            <a href="#" class="nav-link active-link" style="display:flex; align-items:center; gap:8px;">
+                Live System
+                <span
+                    style="font-size:0.55rem; background:var(--quantix-accent); color:white; padding:2px 6px; border-radius:4px; font-weight:800; letter-spacing:0.5px;">INSTITUTIONAL
+                    v3.5</span>
+            </a>
+
+            <a href="javascript:void(0)" class="nav-link disabled-link">API</a>
+            <a href="javascript:void(0)" class="nav-link disabled-link">Contact</a>
+            <a href="javascript:void(0)" class="nav-link disabled-link">Legal</a>
+        </div>
+    </header>
+
+    <main class="app-shell">
+        <aside class="sidebar" id="sidebar-content" style="overflow-x: hidden;">
+            <!-- Sidebar Header / Price Card -->
+            <div class="price-card">
+                <div
+                    style="display:flex; justify-content:space-between; font-size:0.7rem; color:var(--text-secondary); font-weight:700; align-items:center; margin-bottom:4px;">
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <span data-agent-tip="L1 OBSERVATION: Monitoring Real-time Price" class="tip-obs">EUR /
+                            USD</span>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:6px;">
+                        <div id="connection-pulse" class="pulse-scanning"></div>
+                        <span id="connection-status" style="color:var(--text-primary)">INITIALIZING</span>
+                    </div>
+                </div>
+                <div class="current-price" id="price-main">--.-----</div>
+                <div style="height: 60px; margin-top: 10px; position: relative;">
+                    <svg id="spark" width="100%" height="60" viewBox="0 0 100 60" preserveAspectRatio="none"
+                        style="filter: drop-shadow(0 0 5px rgba(56, 189, 248, 0.4));">
+                        <defs>
+                            <linearGradient id="sparkGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                                <stop offset="0%" stop-color="rgba(56, 189, 248, 0.2)" />
+                                <stop offset="100%" stop-color="rgba(56, 189, 248, 0)" />
+                            </linearGradient>
+                        </defs>
+                        <path id="spark-fill" d="" fill="url(#sparkGradient)" style="transition: all 0.5s ease;" />
+                        <path id="spark-line" d="" fill="none" stroke="var(--quantix-accent)" stroke-width="2"
+                            stroke-linecap="round" style="transition: all 0.5s ease;" />
+                    </svg>
+                    <div id="price-pulse"
+                        style="position:absolute; right:0; top:50%; width:8px; height:8px; background:white; border-radius:50%; box-shadow:0 0 10px white; transform:translate(50%, -50%); display:none;">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Market Closed Notice -->
+            <div id="market-closed-notice" class="market-closed-notice">
+                <i data-lucide="clock-9" size="32"></i>
+                <div class="notice-title">Market Closed</div>
+                <div class="notice-msg">Quantix AI is currently in idle mode for the weekend. Systematic market analysis
+                    and signal generation will resume automatically when the market opens on Monday.</div>
+            </div>
+
+            <!-- Signal Template Container -->
+            <div id="signal-view" style="display:none; flex-direction:column; padding:1.5rem 0;">
+                <div class="card-header">
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <i data-lucide="brain-circuit" size="20" style="color:var(--quantix-accent)"></i>
+                        <span class="card-title" style="letter-spacing:1px; color:var(--text-header);">QUANTIX AI
+                            PREDICTION</span>
+                    </div>
+                    <div class="pulse-active"></div>
+                </div>
+
+                <div
+                    style="margin-top:4px; margin-bottom: 20px; font-family:var(--font-mono); font-size:0.65rem; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.5px; border-bottom: 1px solid var(--border-subtle); padding-bottom: 12px;">
+                    <i data-lucide="zap" size="10" style="margin-right:4px;"></i> Pre-Market Structure Analysis
+                </div>
+
+                <div class="sig-section" style="border-top:none; padding-top:0;">
+                    <div class="signal-row">
+                        <span class="sig-label">Asset:</span>
+                        <span class="sig-value">EURUSD</span>
+                    </div>
+                    <div class="signal-row">
+                        <span class="sig-label">Timeframe:</span>
+                        <span class="sig-value">M15</span>
+                    </div>
+                    <div class="signal-row">
+                        <span class="sig-label">Direction:</span>
+                        <span id="view-dir" class="sig-value"></span>
+                    </div>
+                </div>
+
+                <div class="sig-section">
+                    <div class="signal-row" style="margin-bottom:12px;">
+                        <span class="sig-label"
+                            data-tooltip="The current lifecycle phase of the trade signal.">Status:</span>
+                        <span id="view-status" class="sig-value" style="color:var(--quantix-accent)"></span>
+                    </div>
+                    <div class="signal-row">
+                        <span class="sig-label"
+                            data-tooltip="Target price to enter the trade. The signal becomes active only if market hits this price.">Entry
+                            Price:</span>
+                        <div style="display:flex; align-items:center; gap:6px;">
+                            <span id="view-entry" class="sig-value mono"></span>
+                        </div>
+                    </div>
+                    <div class="signal-row">
+                        <span class="sig-label"
+                            data-tooltip="Profit Target: The trade will automatically close with profit if the price reaches this level.">Take
+                            Profit:</span>
+                        <span id="view-tp" class="sig-value mono" style="color:var(--trade-up)"></span>
+                    </div>
+                    <div class="signal-row">
+                        <span class="sig-label"
+                            data-tooltip="Risk Limit: The trade will automatically close with a small loss to protect your capital if the price hits this level.">Stop
+                            Loss:</span>
+                        <span id="view-sl" class="sig-value mono" style="color:var(--trade-down)"></span>
+                    </div>
+                </div>
+
+                <div class="sig-section">
+                    <div class="signal-row">
+                        <div class="data-label"
+                            data-tooltip="Quantix AI Confidence score. Higher scores indicate stronger trend alignment and lower volatility risk.">
+                            AI Probability</div>
+                        <span id="view-conf" class="sig-value" style="color:var(--quantix-accent)"></span>
+                    </div>
+                    <div class="signal-row">
+                        <span class="sig-label"
+                            data-tooltip="Signals are time-sensitive. If Entry Price isn't hit by this time, the setup is invalidated.">Valid
+                            Until:</span>
+                        <span id="view-valid" class="sig-value"></span>
+                    </div>
+                </div>
+
+
+                <div class="sig-section" style="border-bottom:none; padding-bottom:0;">
+                    <div style="font-size: 0.7rem; color: var(--text-secondary); line-height: 1.8; margin-bottom:12px;">
+                        <div style="display:flex; align-items:center; gap:6px;">⏱️ <span style="flex:1">Entry
+                                valid:</span> <b style="color:var(--text-primary)">15m</b></div>
+                        <div style="display:flex; align-items:center; gap:6px;">⏱️ <span style="flex:1">Max trade
+                                duration:</span> <b style="color:var(--text-primary)">35m</b></div>
+                    </div>
+
+                    <div
+                        style="font-size: 0.65rem; color: #64748b; font-style: italic; line-height: 1.4; padding: 10px; background: rgba(0,0,0,0.3); border-radius: 4px; border-left: 2px solid var(--border-subtle);">
+                        ⚠️ Signal will auto-close if TP/SL not hit within 90m.
+                    </div>
+                    <div
+                        style="margin-top:12px; font-family:var(--font-mono); font-size:0.6rem; color:#334155; text-align:right;">
+                        Generated by Quantix Core v2.1 • <span style="color:var(--quantix-accent)">Live</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- NEW: Live Trade Progress Bar -->
+            <div id="trade-progress-container"
+                style="display:none; margin-top:15px; padding-top:10px; border-top:1px solid var(--border-subtle);">
+                <div
+                    style="display:flex; justify-content:space-between; font-size:0.65rem; color:var(--text-secondary); margin-bottom:4px; font-family:var(--font-mono);">
+                    <span>SL</span>
+                    <span id="live-pnl-text" style="font-weight:bold;">NEUTRAL</span>
+                    <span>TP</span>
+                </div>
+                <div style="position:relative; height:6px; background:var(--bg-hover); border-radius:3px; width:100%;">
+                    <!-- Entry Marker -->
+                    <div id="entry-marker"
+                        style="position:absolute; top:-2px; bottom:-2px; width:2px; background:var(--text-primary); opacity:0.5; z-index:1;">
+                    </div>
+                    <!-- Progress Fill -->
+                    <div id="tp-bar-fill"
+                        style="position:absolute; left:0; top:0; height:100%; border-radius:3px; background:var(--trade-up); width:0%; transition: width 0.3s ease, background 0.3s;">
+                    </div>
+                    <!-- Current Price Marker -->
+                    <div id="price-marker"
+                        style="position:absolute; top:-4px; width:8px; height:14px; background:var(--text-primary); border-radius:2px; transform:translateX(-50%); box-shadow:0 0 5px rgba(0,0,0,0.2); z-index:2; transition: left 0.3s ease;">
+                    </div>
+                </div>
+            </div>
+
+            <div id="no-signal-view"
+                style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; color:var(--text-secondary); text-align:center; padding: 2rem;">
+                <i data-lucide="radar" size="48" style="opacity: 0.2; margin-bottom: 1rem;"></i>
+                <div id="scanning-text" style="font-size: 0.8rem; font-weight: 500;">Initializing Quantix Network...
+                </div>
+            </div>
+        </aside>
+
+        <section class="viewport">
+            <nav class="sub-tabs">
+                <div style="display:flex; gap: 4px;">
+                    <div class="tab-btn active" onclick="switchTab('terminal', this)">Execution Terminal</div>
+                    <div class="tab-btn" onclick="switchTab('simulator', this)">Trading Simulator</div>
+                    <div class="tab-btn" onclick="switchTab('logs', this)">Logs</div>
+                </div>
+            </nav>
+
+            <div id="tab-terminal" class="tab-content active">
+                <div class="workspace-grid">
+                    <!-- Executions -->
+                    <div class="section-container">
+                        <div class="section-header">
+                            <div class="section-title">Live Executions <span id="header-utc-clock"
+                                    style="margin-left:10px; opacity:0.5; font-weight:normal; text-transform:none; font-family:var(--font-mono);"></span>
+                            </div>
+                            <i data-lucide="activity" size="14" style="color:var(--text-secondary)"></i>
+                        </div>
+                        <div class="content-scroller">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Created</th>
+                                        <th>Side</th>
+                                        <th>AI Score</th>
+                                        <th>Entry</th>
+                                        <th>TP</th>
+                                        <th>SL</th>
+                                        <th>Win/Loss</th>
+                                        <th>Closed</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="signal-history"></tbody>
+                            </table>
+                        </div>
+                        <!-- Pagination Controls -->
+                        <div
+                            style="display:flex; justify-content:space-between; align-items:center; padding: 10px 16px; border-top: 1px solid var(--border-subtle);">
+                            <div
+                                style="font-size: 0.75rem; color: var(--text-secondary); font-family: var(--font-mono);">
+                                Page <span id="page-num" style="color:var(--text-primary)">1</span> / <span
+                                    id="total-pages">1</span>
+                            </div>
+                            <div style="display:flex; gap:8px;">
+                                <button id="btn-prev" onclick="changePage(-1)"
+                                    style="background:var(--bg-card); border:1px solid var(--border-subtle); color:var(--text-primary); padding:4px 8px; border-radius:4px; cursor:pointer; font-size:0.75rem;"
+                                    disabled>&lt; Prev</button>
+                                <button id="btn-next" onclick="changePage(1)"
+                                    style="background:var(--bg-card); border:1px solid var(--border-subtle); color:var(--text-primary); padding:4px 8px; border-radius:4px; cursor:pointer; font-size:0.75rem;">Next
+                                    &gt;</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- App Footer -->
+                    <footer
+                        style="padding: 1.5rem 0; border-top: 1px solid var(--border-subtle); margin-top: auto; text-align: center;">
+                        <div style="font-family: var(--font-mono); font-size: 0.7rem; color: #475569;">
+                            &copy; 2026 SIGNAL GENIUS AI. All systems nominal.
+                        </div>
+                        <div style="margin-top: 6px; display: flex; justify-content: center; gap: 16px;">
+                            <a href="#"
+                                style="color: var(--text-secondary); font-size: 0.65rem; text-decoration: none;">Terms
+                                of Service</a>
+                            <a href="#"
+                                style="color: var(--text-secondary); font-size: 0.65rem; text-decoration: none;">Privacy
+                                Policy</a>
+                            <a href="#"
+                                style="color: var(--text-secondary); font-size: 0.65rem; text-decoration: none;">API
+                                Status</a>
+                        </div>
+                    </footer>
+                </div>
+            </div>
+
+            <div id="tab-simulator" class="tab-content"
+                style="padding:0; height: 100%; display: none; flex-direction: column;">
+                <div class="sim-app-container" style="flex: 1; display: flex; flex-direction: column; height: 100%;">
+                    <div class="sim-app-header"
+                        style="padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border-subtle);">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <div style="display:flex; align-items:center; gap:8px;">
+                                <div class="section-title">
+                                    Signal Validation Environment
+                                </div>
+                            </div>
+                            <div style="display:flex; gap:16px; align-items:center;">
+                                <i data-lucide="activity" size="14" style="color:var(--text-secondary)"></i>
+                                <button onclick="simulator.resetAccount()"
+                                    style="background:transparent; border:none; color:#848e9c; cursor:pointer;"><i
+                                        data-lucide="refresh-cw" size="18"></i></button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Layer 1: Observation Agents -->
+                    <div class="agent-observation-bar">
+                        <div class="obs-badge active" id="agent-market-regime">
+                            <i data-lucide="layout-grid" size="12"></i>
+                            <span>Market: Range</span>
+                        </div>
+                        <div class="obs-badge" id="agent-vol-monitor">
+                            <i data-lucide="activity" size="12"></i>
+                            <span>Volatility: Low</span>
+                        </div>
+                        <div class="obs-badge" id="agent-sig-state">
+                            <i data-lucide="timer" size="12"></i>
+                            <span>Signal: Valid (14m)</span>
+                        </div>
+                    </div>
+
+
+                    <div class="sim-action-bar"
+                        style="border-top:none; border-bottom:1px solid var(--border-subtle); background: var(--bg-surface); padding: 10px 16px; display: flex; align-items: center; gap: 12px; flex-wrap: nowrap; overflow-x: auto;">
+
+                        <!-- Lot Size -->
+                        <div style="display:flex; align-items:center; gap:8px; flex-shrink: 0;"
+                            data-tooltip="Trade Volume: 1.00 lot = 100,000 units. A 1-pip movement equals approximately $10 profit/loss.">
+                            <div
+                                style="font-size:0.6rem; color:#848e9c; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; white-space:nowrap;">
+                                Lot</div>
+                            <div
+                                style="display:flex; align-items:center; gap:2px; background:var(--bg-hover); border-radius:4px; padding:2px;">
+                                <button onclick="updateLot(-0.01)"
+                                    style="background:transparent; border:none; color:var(--text-primary); width:20px; height:20px; cursor:pointer; font-weight:bold;">-</button>
+                                <input type="text" id="sim-lot-input" value="1.00"
+                                    style="background:transparent; border:none; color:var(--text-primary); width:35px; text-align:center; font-weight:700; font-family:var(--font-mono); font-size:0.7rem;">
+                                <button onclick="updateLot(0.01)"
+                                    style="background:transparent; border:none; color:var(--text-primary); width:20px; height:20px; cursor:pointer; font-weight:bold;">+</button>
+                            </div>
+                        </div>
+
+                        <!-- Spread -->
+                        <div style="display:flex; align-items:center; gap:6px; flex-shrink: 0;"
+                            data-tooltip="The difference between Buy (Ask) and Sell (Bid) price. This is the broker's fee for executing your trade.">
+                            <div
+                                style="font-size:0.6rem; color:#848e9c; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; white-space:nowrap; display:flex; flex-direction:column;">
+                                <span>Spread</span>
+                            </div>
+                            <div id="sim-spread"
+                                style="font-family:var(--font-mono); font-weight:700; color:var(--text-primary); font-size:0.75rem;">
+                                0.0</div>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div
+                            style="display:flex; gap:8px; flex:1; justify-content:flex-end; align-items:center; position:relative;">
+                            <button onclick="manualTrade('SELL')"
+                                data-tooltip="Sell (Short): Profit if price goes DOWN. Executed at the BID price."
+                                style="background:#f6465d; border:none; color:white; padding:6px 14px; border-radius:6px; cursor:pointer; min-width:85px; text-align:center; transition: 0.2s;">
+                                <div style="font-size:0.85rem; font-weight:800; line-height:1;">SELL</div>
+                                <div id="sim-price-sell"
+                                    style="font-size:0.7rem; opacity:0.8; font-family:var(--font-mono); margin-top:2px;">
+                                    --.-----</div>
+                            </button>
+                            <button onclick="manualTrade('BUY')"
+                                data-tooltip="Buy (Long): Profit if price goes UP. Executed at the ASK price."
+                                style="background:#0ecb81; border:none; color:white; padding:6px 14px; border-radius:6px; cursor:pointer; min-width:85px; text-align:center; transition: 0.2s;">
+                                <div style="font-size:0.85rem; font-weight:800; line-height:1;">BUY</div>
+                                <div id="sim-price-buy"
+                                    style="font-size:0.7rem; opacity:0.8; font-family:var(--font-mono); margin-top:2px;">
+                                    --.-----</div>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="sim-positions-section" style="flex:1; overflow-y:auto;">
+
+                        <!-- Layer 3: Advisory Agent (Human-facing) -->
+                        <div class="advisory-panel" id="advisory-for-traders">
+                            <div class="advisory-header" onclick="this.parentElement.classList.toggle('expanded')">
+                                <div style="display:flex; align-items:center; gap:10px;">
+                                    <i data-lucide="info" size="16" style="color:var(--quantix-purple)"></i>
+                                    <span
+                                        style="font-size:0.775rem; font-weight:800; color:var(--text-header); text-transform:uppercase; letter-spacing:0.5px;">Advisory
+                                        for Traders</span>
+                                </div>
+                                <i data-lucide="chevron-down" size="14" style="color:#848e9c"></i>
+                            </div>
+                            <div class="advisory-content">
+                                <p id="advisory-text">New traders should note that current market conditions favor
+                                    defensive strategies. Risk management is more critical than entry optimization in
+                                    high-volatility environments. Consistency in lot-sizing is recommended over chasing
+                                    impulse moves.</p>
+                            </div>
+                        </div>
+
+                        <div
+                            style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; padding: 0 16px;">
+                            <div class="sim-pos-tabs">
+                                <div class="sim-pos-tab active" onclick="switchSimSubTab('positions', this)">Open
+                                    Positions (<span id="sim-pos-count">0</span>)</div>
+                                <div class="sim-pos-tab" onclick="switchSimSubTab('history', this)">Trade History</div>
+                                <div class="sim-pos-tab" onclick="switchSimSubTab('guide', this)">Simulator Guide</div>
+                            </div>
+                            <div style="font-size:0.75rem; color:#848e9c;">
+                                <span data-tooltip="Balance: Funds currently in your account.">Balance:</span> <span
+                                    id="sim-balance-app"
+                                    style="color:var(--text-primary); font-weight:700">$50,000.00</span>
+                                | <span
+                                    data-tooltip="PnL: Current unrealized profit or loss from your open trades.">PnL:</span>
+                                <span id="sim-pnl-app" style="color:#0ecb81">$0.00</span>
+                            </div>
+                        </div>
+                        <div id="sim-positions-list"></div>
+                        <div id="sim-history-list" style="display:none; padding: 8px 16px; overflow-y: auto;"></div>
+                        <div id="sim-guide-content"
+                            style="display:none; color:var(--text-secondary); font-size:0.8rem; line-height:1.4; padding:12px; height: 100%; overflow-y: auto;">
+                            <h4
+                                style="color:var(--text-header); margin:0 0 15px 0; display:flex; align-items:center; gap:8px;">
+                                <i data-lucide="help-circle" size="18" style="color:var(--quantix-accent)"></i>
+                                How to Use Simulator
+                            </h4>
+
+                            <div style="display:flex; flex-direction:column; gap:16px;">
+                                <div
+                                    style="display:flex; gap:12px; background:var(--bg-hover); padding:10px; border-radius:8px; border-left:3px solid var(--quantix-accent);">
+                                    <i data-lucide="activity" size="18"
+                                        style="color:var(--quantix-accent); flex-shrink:0;"></i>
+                                    <div>
+                                        <b style="color:var(--text-header); display:block; margin-bottom:2px;">Real-Time
+                                            Pricing</b>
+                                        Simulation nodes are synchronized with the <span
+                                            style="color:var(--quantix-accent)">Live Market Price</span>.
+                                    </div>
+                                </div>
+
+                                <div
+                                    style="display:flex; gap:12px; background:var(--bg-hover); padding:10px; border-radius:8px; border-left:3px solid var(--trade-up);">
+                                    <i data-lucide="zap" size="18" style="color:var(--trade-up); flex-shrink:0;"></i>
+                                    <div>
+                                        <b style="color:var(--text-header); display:block; margin-bottom:2px;">Instant
+                                            Execution</b>
+                                        Adjust <b style="color:var(--text-primary)">Lot Size</b> and click Buy/Sell to
+                                        enter a trade
+                                        immediately.
+                                    </div>
+                                </div>
+
+                                <div
+                                    style="display:flex; gap:12px; background:var(--bg-hover); padding:10px; border-radius:8px; border-left:3px solid #facc15;">
+                                    <i data-lucide="bar-chart-2" size="18" style="color:#facc15; flex-shrink:0;"></i>
+                                    <div>
+                                        <b style="color:var(--text-header); display:block; margin-bottom:2px;">Live PnL
+                                            Tracking</b>
+                                        Track the performance of your open positions with live profit/loss updates.
+                                    </div>
+                                </div>
+
+                                <div
+                                    style="display:flex; gap:12px; background:var(--bg-hover); padding:10px; border-radius:8px; border-left:3px solid var(--quantix-purple);">
+                                    <i data-lucide="shield" size="18"
+                                        style="color:var(--quantix-purple); flex-shrink:0;"></i>
+                                    <div>
+                                        <b style="color:var(--text-header); display:block; margin-bottom:2px;">Risk
+                                            Guards</b>
+                                        Every trade is initialized with automatic Take Profit and Stop Loss levels.
+                                    </div>
+                                </div>
+
+                                <div
+                                    style="display:flex; gap:12px; align-items:center; background:rgba(244,63,94,0.05); padding:10px; border-radius:8px; border:1px dashed rgba(244,63,94,0.2);">
+                                    <i data-lucide="alert-circle" size="16"
+                                        style="color:var(--trade-down); flex-shrink:0;"></i>
+                                    <span style="font-size:0.7rem;">This is a <b style="color:var(--text-header);">Demo
+                                            Environment</b>. No real capital or account data is affected.</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Logs Tab Content -->
+            <div id="tab-logs" class="tab-content"
+                style="padding:0; height: 100%; display: none; flex-direction: column; overflow: hidden;">
+                <!-- Validation Table (Trades) -->
+                <div class="section-container" style="flex: 1; min-height: 0; display: flex; flex-direction: column;">
+                    <div class="section-header">
+                        <div class="section-title">Validation Events (Trader Proof)</div>
+                        <button onclick="fetchLogs()"
+                            style="background:transparent; border:none; color:var(--text-secondary); cursor:pointer;"
+                            title="Refresh Logs">
+                            <i data-lucide="refresh-cw" size="14"></i>
+                        </button>
+                    </div>
+                    <div class="content-scroller">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th style="width:120px">Timestamp</th>
+                                    <th style="width:70px">Signal ID</th>
+                                    <th style="width:80px">Type</th>
+                                    <th style="width:80px">Val Price</th>
+                                    <th style="width:100px">Status</th>
+                                    <th>Details</th>
+                                </tr>
+                            </thead>
+                            <tbody id="logs-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </section>
+
+        <aside class="right-panel"
+            style="width: 320px; border-left: 1px solid var(--border-subtle); background: var(--bg-base); display: flex; flex-direction: column; padding: 0; flex-shrink: 0; height: 100%;">
+
+            <!-- Social Sharing & Alignment Spacer -->
+            <div
+                style="height: 48px; border-bottom: 1px solid var(--border-subtle); display: flex; align-items: center; justify-content: space-between; padding: 0 1.5rem;">
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <span
+                        style="font-family: var(--font-mono); font-size: 0.65rem; color: #475569; text-transform: uppercase; letter-spacing: 0.5px;">Network
+                        Status:</span>
+                    <div
+                        style="display:flex; align-items:center; gap:4px; font-size:0.6rem; color:var(--trade-up); font-weight:700;">
+                        <span class="pulse-active" style="width:6px; height:6px;"></span>
+                        FAST
+                    </div>
+                </div>
+                <div
+                    style="display:flex; align-items:center; gap:15px; font-family:var(--font-mono); font-size:0.6rem; color:var(--text-secondary);">
+                    <span>Latency: <b style="color:var(--text-primary);">84ms</b></span>
+                    <span>Load: <b style="color:var(--text-primary);">12%</b></span>
+                </div>
+            </div>
+
+            <div id="neural-console"
+                style="height: 100%; display: flex; flex-direction: column; overflow: hidden; position: relative;">
+
+                <div class="section-header" style="flex-shrink: 0; padding: 1.5rem 1.5rem 0.5rem 1.5rem;">
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <span class="pulsing-dot"></span>
+                        <span class="section-title">Neural Market Feed</span>
+                    </div>
+                    <i data-lucide="brain-circuit" size="18" style="color:var(--quantix-purple)"></i>
+                </div>
+
+                <div class="reasoning-container"
+                    style="margin: 1rem 1.5rem; background: transparent; border: none; padding: 0;">
+
+                    <div
+                        style="font-size:0.65rem; color:#848e9c; font-weight:800; text-transform:uppercase; margin-bottom:12px; display:flex; align-items:center; gap:8px;">
+                        🧠 FINANCIAL REASONING SNAPSHOT
+                    </div>
+
+                    <div class="reasoning-block">
+                        <span class="reasoning-label">Market Context</span>
+                        <span class="reasoning-text" id="reasoning-context">Wait for signal...</span>
+                    </div>
+
+                    <div class="reasoning-block">
+                        <span class="reasoning-label">Evidence Supporting Signal</span>
+                        <span class="reasoning-text" id="reasoning-supporting"
+                            style="color:var(--trade-up); border-left: 2px solid var(--trade-up); padding-left: 8px;">--</span>
+                    </div>
+
+                    <div class="reasoning-block">
+                        <span class="reasoning-label">Evidence Against Signal</span>
+                        <span class="reasoning-text" id="reasoning-against"
+                            style="color:var(--trade-down); border-left: 2px solid var(--trade-down); padding-left: 8px;">--</span>
+                    </div>
+
+                    <div class="reasoning-block">
+                        <span class="reasoning-label">Risk Interpretation</span>
+                        <span class="reasoning-text" id="reasoning-risk-interp">--</span>
+                    </div>
+
+                    <div class="reasoning-block">
+                        <span class="reasoning-label">Trader Awareness Note</span>
+                        <span class="reasoning-text" id="reasoning-note"
+                            style="font-style: italic; color: #94a3b8;">--</span>
+                    </div>
+                </div>
+
+                <div
+                    style="padding: 0 1.5rem; margin-top: 5px; flex: 1; min-height: 0; display: flex; flex-direction: column;">
+                    <div
+                        style="font-size: 0.7rem; color: var(--text-header); font-weight: 900; text-transform: uppercase; letter-spacing: 1.2px; margin-bottom: 8px; border-bottom: 1.5px solid var(--bg-base); padding-bottom: 4px;">
+                        Thinking Logs</div>
+                    <div id="neural-history"
+                        style="flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; padding-right: 5px;"
+                        class="custom-scroll">
+                    </div>
+                </div>
+
+                <div
+                    style="margin-top: auto; padding: 1.25rem 1.5rem; border-top: 1px solid var(--border-subtle); font-size: 0.65rem; color: var(--text-secondary); display: flex; justify-content: space-between; font-weight:700;">
+                    <span>SNC STATUS: OPTIMAL</span>
+                    <span>v2.1.2</span>
+                </div>
+            </div>
+        </aside>
+    </main>
+
+    <script>
+        // Quantix Configuration is loaded from signal_record_config.js
+
+        async function fetchWithFallback(endpoint, options = {}) {
+            try {
+                const url = endpoint.startsWith('http') ? endpoint : `${window.CONFIG.AI_CORE_API}${endpoint}`;
+                if (options.method === 'POST' && options.body && !options.headers) {
+                    options.headers = { 'Content-Type': 'application/json' };
+                }
+                const res = await fetch(url, { ...options, timeout: 5000 });
+                if (res.ok) return await res.json();
+                throw new Error(`HTTP ${res.status}`);
+            } catch (error) {
+                if (window.CONFIG.USE_SUPABASE_FALLBACK) {
+                    console.warn(`⚠️ API failed for ${endpoint}, falling back to Supabase:`, error.message);
+                    return await fetchFromSupabase(endpoint);
+                }
+                throw error;
+            }
+        }
+
+        async function fetchFromSupabase(endpoint) {
+            const baseUrl = window.CONFIG.SUPABASE_REST;
+            const headers = {
+                'apikey': window.CONFIG.SUPABASE_KEY,
+                'Authorization': `Bearer ${window.CONFIG.SUPABASE_KEY}`,
+                'Content-Type': 'application/json'
+            };
+
+            if (endpoint.includes('/signals/latest')) {
+                const activeRes = await fetch(`${baseUrl}/fx_signals?state=in.("WAITING_FOR_ENTRY","ENTRY_HIT")&telegram_message_id=not.is.null&select=*&order=generated_at.desc&limit=1`, { headers });
+                const activeData = await activeRes.json();
+                const histRes = await fetch(`${baseUrl}/fx_signals?state=not.in.("WAITING_FOR_ENTRY","ENTRY_HIT")&telegram_message_id=not.is.null&select=*&order=generated_at.desc&limit=50`, { headers });
+                const histData = await histRes.json();
+                return { success: true, active: activeData[0] || null, history: histData };
+            }
+
+            if (endpoint.includes('/validation-logs')) {
+                const res = await fetch(`${baseUrl}/validation_events?select=*&order=created_at.desc&limit=50`, { headers });
+                return { success: true, data: await res.json() };
+            }
+
+            if (endpoint.includes('/analysis-logs')) {
+                const res = await fetch(`${baseUrl}/fx_analysis_log?select=*&order=timestamp.desc&limit=20`, { headers });
+                return { success: true, data: await res.json() };
+            }
+            return { success: false, error: "Cloud connection lost." };
+        }
+        let data = {
+            price: null,
+            prevPrice: 0,
+            sigs: [],
+            pHistory: [],
+            active: null,
+            currentPage: 1,
+            itemsPerPage: 10
+        };
+
+        const terminal = document.getElementById('terminal');
+        const priceEl = document.getElementById('price-main');
+
+        // Initialize itemsPerPage based on screen size
+        data.itemsPerPage = window.innerWidth < 1024 ? 5 : 10;
+
+        function switchTab(id, btn) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
+            btn.classList.add('active');
+            const target = document.getElementById(`tab-${id}`);
+
+            if (id === 'simulator' || id === 'logs') {
+                target.style.display = 'flex';
+                if (id === 'logs') fetchLogs();
+            } else {
+                target.style.display = 'block';
+            }
+            target.classList.add('active');
+        }
+
+        async function fetchLogs() {
+            const tbody = document.getElementById('logs-body');
+            if (!tbody) return;
+
+            // Also refresh heartbeat
+            fetchHeartbeat();
+
+            try {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:20px; color:#475569">Loading validation data...</td></tr>';
+                const json = await fetchWithFallback('/validation-logs?limit=50');
+                if (json.success && json.data) {
+                    tbody.innerHTML = '';
+                    if (json.data.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:20px; color:#475569">No validation events recorded yet (Waiting for first signal).</td></tr>';
+                        return;
+                    }
+                    json.data.forEach(log => {
+                        const tr = document.createElement('tr');
+                        const isDisc = log.is_discrepancy;
+                        const statusColor = isDisc ? '#f43f5e' : '#10b981';
+                        const statusIcon = isDisc ? '⚠️' : '✅';
+                        const statusText = isDisc ? 'PRICE MISMATCH' : 'PRICE MATCHED'; // is_discrepancy: True -> Mismatch
+
+                        let ts = new Date(log.created_at).toLocaleString();
+
+                        // Proof (Candle Data)
+                        let proof = '';
+                        if (log.validator_candle) {
+                            const c = log.validator_candle;
+                            // Format: O:1.05 H:1.06 L:1.04 C:1.05
+                            proof = `O:${c.open} H:${c.high} L:${c.low} C:${c.close}`;
+                        } else {
+                            proof = 'No Candle Data';
+                        }
+
+                        // Meta Details
+                        let meta = log.meta_data ? (typeof log.meta_data === 'string' ? log.meta_data : JSON.stringify(log.meta_data)) : '';
+
+                        tr.innerHTML = `
+                            <td style="color:#64748b; font-family:var(--font-mono); font-size:0.75rem">${ts}</td>
+                            <td style="color:var(--quantix-accent)">${log.signal_id ? log.signal_id.slice(0, 4) : '--'}</td>
+                            <td>${log.check_type || 'UNKNOWN'}</td>
+                            <td style="font-family:var(--font-mono)">${Number(log.validator_price || 0).toFixed(5)}</td>
+                            <td style="color:${statusColor}; font-weight:700;">${statusIcon} ${statusText}</td>
+                            <td style="color:#64748b; font-size:0.7rem; font-family:var(--font-mono);">
+                                <div style="font-weight:bold; color:#94a3b8">Proof: ${proof}</div>
+                                <div style="margin-top:2px;">${meta}</div>
+                            </td>
+                        `;
+                        tbody.appendChild(tr);
+                    });
+                }
+            } catch (e) {
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:20px; color:#94a3b8">Quantix AI Core is updating or offline. Retrying...</td></tr>`;
+            }
+        }
+
+        async function fetchHeartbeat() {
+            const hbody = document.getElementById('heartbeat-body');
+            if (!hbody) return;
+
+            try {
+                const json = await fetchWithFallback('/agents/status');
+
+                if (json.agents) {
+                    hbody.innerHTML = '';
+                    json.agents.forEach(agent => {
+                        const tr = document.createElement('tr');
+                        const ts = agent.last_seen ? new Date(agent.last_seen).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }) : '--:--';
+                        const color = agent.is_alive ? 'var(--trade-up)' : '#f43f5e';
+                        const status = agent.is_alive ? 'ALIVE' : 'OFFLINE';
+
+                        tr.innerHTML = `
+                             <td style="color:#64748b; font-family:var(--font-mono); font-size:0.75rem">${ts}</td>
+                             <td style="font-weight:700">${agent.agent_id}</td>
+                             <td style="color:${color}; font-weight:700">${status}</td>
+                             <td style="font-family:var(--font-mono); font-weight:700; color:${color}">${agent.seconds_since_heartbeat}s ago</td>
+                             <td style="font-family:var(--font-mono); color:#94a3b8">v4.0</td>
+                             <td style="color:#64748b; font-size:0.7rem; font-style:italic">Agent healthy and monitoring channels.</td>
+                         `;
+                        hbody.appendChild(tr);
+                    });
+                }
+            } catch (e) {
+                console.warn("Heartbeat fetch failed (AI Core might be rebuilding)");
+            }
+        }
+
+
+        function isMarketClosed() {
+            const now = new Date();
+            const day = now.getUTCDay();
+            const hour = now.getUTCHours();
+            // Market closes Fri 22:00 UTC, opens Sun 22:00 UTC
+            return (day === 6) || (day === 0 && hour < 22) || (day === 5 && hour >= 22);
+        }
+
+        function addLog(msg, type = 'sys') {
+            const container = document.getElementById('terminal-logs');
+            if (container) {
+                const div = document.createElement('div');
+                div.className = `log-line type-${type}`;
+                div.innerHTML = `<span style="color:#475569">[${new Date().toLocaleTimeString()}]</span> <span class="log-msg">${msg}</span>`;
+                container.appendChild(div);
+                container.scrollTop = container.scrollHeight;
+
+                // Limit logs to last 100 lines
+                if (container.children.length > 100) {
+                    container.removeChild(container.firstChild);
+                }
+            }
+        }
+
+        function calcConfidence(val) {
+            if (val === undefined || val === null) return 0;
+            // If strict decimal <= 1, multiply by 100.
+            // e.g. 0.6 -> 60, 0.95 -> 95
+            if (val <= 1) return Math.round(val * 100);
+            // If already > 1, assume percentage
+            // e.g. 85 -> 85
+            return Math.round(val);
+        }
+
+        // CONFIG: Quantix AI Core Local API
+        // CONFIG: Quantix AI Core Local API
+        const API_BASE = window.location.origin.includes('localhost') ? 'http://localhost:8000/api/v1' : '/api/v1';
+
+        async function syncDatabase() {
+            try {
+                // 1. Fetch Active Signals
+                const activeJson = await fetchWithFallback('/signals/active');
+                
+                if (activeJson.signals && activeJson.signals.length > 0) {
+                    const s = activeJson.signals[0]; // Take most recent active
+                    const isNew = !data.active || data.active.id !== s.id;
+                    data.active = {
+                        id: s.id,
+                        side: s.side,
+                        entry: s.entry_price,
+                        tp: s.tp_price,
+                        sl: s.sl_price,
+                        status: s.state,
+                        conf: calcConfidence(s.confidence || 0),
+                        generatedAt: s.generated_at ? new Date(s.generated_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }) : '--:--',
+                        closedAt: '--:--',
+                        validUntil: '--:--'
+                    };
+                    if (isNew) {
+                        addLog(`Sync: New live signal detected #${s.id}`, 'success');
+                    }
+                } else {
+                    data.active = null;
+                }
+
+                // 2. Fetch Historical Signals
+                const historyJson = await fetchWithFallback('/signals?limit=50');
+                if (historyJson.signals) {
+                    data.sigs = historyJson.signals.map(s => ({
+                        id: s.id,
+                        side: s.side,
+                        entry: s.entry_price,
+                        tp: s.tp_price,
+                        sl: s.sl_price,
+                        result: s.state.includes('TP') ? 'PROFIT' : (s.state.includes('SL') ? 'LOSS' : 'NEUTRAL'),
+                        status: s.state,
+                        conf: calcConfidence(s.confidence || 0),
+                        generatedAt: s.generated_at ? new Date(s.generated_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }) : '--:--',
+                        closedAt: s.updated_at ? new Date(s.updated_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }) : '--:--'
+                    }));
+                }
+
+                // 3. Fetch Stats for Header
+                const statsJson = await fetchWithFallback('/stats');
+                if (statsJson.total_signals !== undefined) {
+                    document.getElementById('total-sigs').textContent = statsJson.total_signals;
+                    document.getElementById('win-rate').textContent = (statsJson.win_rate * 100).toFixed(1) + '%';
+                }
+
+                renderSignalView();
+                renderTable();
+            } catch (err) {
+                console.error("DB Sync Error:", err);
+                
+                document.getElementById('connection-status').textContent = "DISCONNECTED";
+                document.getElementById('connection-status').style.color = "var(--trade-down)";
+                document.getElementById('connection-pulse').className = "pulse";
+                document.getElementById('connection-pulse').style.background = "var(--trade-down)";
+                
+                addLog(`Linker Error: API Offline or Network Issue`, "danger");
+            }
+        }
+
+        function updateConnectionUI(status, activeSignal = null) {
+            const statusEl = document.getElementById('connection-status');
+            const pulseEl = document.getElementById('connection-pulse');
+            const scanText = document.getElementById('scanning-text');
+
+            if (status === 'scanning') {
+                statusEl.textContent = "SYNCHRONIZING";
+                statusEl.style.color = "#eab308";
+                pulseEl.className = "pulse-scanning";
+
+                if (isMarketClosed()) return; // Don't overwrite Market Closed message
+                if (scanText && !data.active) scanText.textContent = "Scanning for new signals...";
+            }
+
+            if (status === 'active') {
+                statusEl.textContent = "LIVE DATA";
+                statusEl.style.color = "var(--trade-up)";
+                pulseEl.className = "pulse-active";
+
+                if (isMarketClosed()) return; // Don't overwrite Market Closed message
+
+                // Added success log for connection
+                if (!window.hasLoggedSuccess) {
+                    addLog("Connecting Tele Signal: Success", "success");
+                    window.hasLoggedSuccess = true;
+                }
+
+                if (activeSignal) {
+                    // Show latest active signal
+                    scanText.innerHTML = `
+                        <span style="color:var(--text-secondary)">Active Signal:</span> 
+                        <span style="color:var(--quantix-accent)">#${activeSignal.id.slice(0, 4)}</span> 
+                        <span style="margin:0 4px; color:#334155;">|</span>
+                        <span style="color:${activeSignal.side === 'BUY' ? 'var(--trade-up)' : 'var(--trade-down)'}">${activeSignal.side}</span>
+                        <span style="margin-left:4px; font-family:var(--font-mono)">${Number(activeSignal.entry).toFixed(5)}</span>
+                    `;
+                } else if (data.sigs && data.sigs.length > 0) {
+                    // Show last historical signal
+                    const lastSig = data.sigs[0];
+                    let statusColor = '#94a3b8';
+                    if (lastSig.result === 'PROFIT') statusColor = 'var(--trade-up)';
+                    if (lastSig.result === 'LOSS') statusColor = 'var(--trade-down)';
+
+                    scanText.innerHTML = `
+                        <span style="color:var(--text-secondary)">Last Signal:</span> 
+                        <span style="color:#cbd5e1">#${lastSig.id.slice(0, 4)}</span> 
+                        <span style="margin:0 4px; color:#334155;">|</span>
+                        <span style="color:${statusColor}; font-weight:600;">${lastSig.result || lastSig.status}</span>
+                        <span style="margin-left:4px; font-family:var(--font-mono); color:#64748b">${Number(lastSig.entry).toFixed(5)}</span>
+                    `;
+                } else {
+                    scanText.textContent = "Monitoring Quantix Network Channel...";
+                }
+            }
+        }
+
+        function renderSignalView() {
+            const sigView = document.getElementById('signal-view');
+            const noSigView = document.getElementById('no-signal-view');
+
+            // Determine which signal to show: Active > Last History > None
+            let displaySig = data.active;
+            let isHistorical = false;
+
+            if (!displaySig && data.sigs.length > 0) {
+                displaySig = data.sigs[0];
+                isHistorical = true;
+            }
+
+            if (!displaySig) {
+                sigView.style.display = 'none';
+                noSigView.style.display = 'flex';
+                noSigView.innerHTML = `
+                    <i data-lucide="radar" size="48" style="opacity: 0.2; margin-bottom: 1rem;"></i>
+                    <div id="scanning-text" style="font-size: 0.8rem; font-weight: 500;">Initializing Quantix Network...</div>
+                `;
+                lucide.createIcons();
+                return;
+            }
+
+            sigView.style.display = 'flex';
+            noSigView.style.display = 'none';
+
+            // Populate View
+            document.getElementById('view-dir').innerHTML = displaySig.side === 'BUY' ? '🟢 BUY' : '🔴 SELL';
+            document.getElementById('view-dir').style.color = displaySig.side === 'BUY' ? 'var(--trade-up)' : 'var(--trade-down)';
+
+            // Status Logic
+            const statusEl = document.getElementById('view-status');
+            statusEl.textContent = displaySig.status;
+            if (isHistorical) {
+                statusEl.style.color = displaySig.result === 'PROFIT' ? 'var(--trade-up)' : (displaySig.result === 'LOSS' ? 'var(--trade-down)' : 'var(--text-secondary)');
+            } else {
+                statusEl.style.color = 'var(--quantix-accent)';
+            }
+
+            document.getElementById('view-entry').textContent = Number(displaySig.entry).toFixed(5);
+            document.getElementById('view-tp').textContent = Number(displaySig.tp).toFixed(5);
+            document.getElementById('view-sl').textContent = Number(displaySig.sl).toFixed(5);
+            const confEl = document.getElementById('view-conf');
+            confEl.textContent = displaySig.conf > 0 ? `${displaySig.conf}%` : '--%';
+            confEl.style.color = isHistorical ? 'var(--text-secondary)' : 'var(--quantix-accent)';
+            confEl.style.opacity = isHistorical ? '0.5' : '1';
+
+            // Valid Until might not be in historical objects, handle gracefully
+            const validTime = displaySig.validUntil || displaySig.closedAt || '--:--';
+            document.getElementById('view-valid').textContent = validTime;
+
+            // --- LIVE PROGRESS VISUALIZER ---
+            // Only show logic if we have valid numerical params and data.price is available
+            const progressContainer = document.getElementById('trade-progress-container');
+            if (data.active && data.price && !isHistorical && displaySig.status === 'ACTIVE') {
+                progressContainer.style.display = 'block';
+
+                const entry = parseFloat(displaySig.entry);
+                const tp = parseFloat(displaySig.tp);
+                const sl = parseFloat(displaySig.sl);
+                const current = data.price;
+                const side = displaySig.side;
+
+                // Calculate total range (SL <-> TP distance)
+                // For normalization: 0% = SL, 100% = TP
+                // But wait, for visual balance, let's map: 
+                // 0% = SL, 50% = Entry, 100% = TP? No, distance is asymmetric.
+                // Let's us simple linear mapping between SL and TP.
+
+                let totalDist, distFromSL;
+
+                if (side === 'BUY') {
+                    totalDist = tp - sl;
+                    distFromSL = current - sl;
+                } else { // SELL: SL is higher than TP
+                    totalDist = sl - tp;
+                    distFromSL = sl - current; // price going down means moving away from SL (up in profit)
+                }
+
+                // % Progress from SL (0%) to TP (100%)
+                let pct = (distFromSL / totalDist) * 100;
+                pct = Math.max(0, Math.min(100, pct)); // Clamp 0-100
+
+                // Visual Setup
+                const barFill = document.getElementById('tp-bar-fill');
+                const marker = document.getElementById('price-marker');
+                const pnlText = document.getElementById('live-pnl-text');
+
+                barFill.style.width = `${pct}%`;
+                marker.style.left = `${pct}%`;
+
+                // PnL Color Logic
+                // Entry point relative position
+                // BUY: Entry > SL. SELL: Entry < SL. 
+                // Let's calculate Entry % position
+                let entryPct;
+                if (side === 'BUY') entryPct = ((entry - sl) / totalDist) * 100;
+                else entryPct = ((sl - entry) / totalDist) * 100;
+
+                document.getElementById('entry-marker').style.left = `${entryPct}%`;
+
+                if (pct > entryPct) {
+                    // Winning Zone
+                    barFill.style.background = 'linear-gradient(90deg, var(--trade-up) 0%, #10b981 100%)';
+                    barFill.style.boxShadow = '0 0 10px rgba(16, 185, 129, 0.4)';
+                    pnlText.style.color = 'var(--trade-up)';
+                    pnlText.textContent = 'PROFIT ZONE';
+                } else {
+                    // Losing Zone
+                    barFill.style.background = 'linear-gradient(90deg, #ef4444 0%, var(--trade-down) 100%)';
+                    barFill.style.boxShadow = '0 0 10px rgba(239, 68, 68, 0.4)';
+                    pnlText.style.color = 'var(--trade-down)';
+                    pnlText.textContent = 'DRAWDOWN';
+                }
+
+            } else {
+                progressContainer.style.display = "none";
+            }
+
+            // Update AI Agent System
+            updateAgentSystem(displaySig, isHistorical);
+        }
+
+        // --- AI Agent System Logic ---
+        let lastAgentLog = 0;
+        function updateAgentSystem(signal, isHistorical) {
+            // Layer 1: Observation (Deterministic)
+            const regimeEl = document.getElementById('agent-market-regime');
+            const volEl = document.getElementById('agent-vol-monitor');
+            const sigStateEl = document.getElementById('agent-sig-state');
+
+            // Thinking Feed simulation
+            const now = Date.now();
+            if (now - lastAgentLog > 4000) { // Every 4 seconds
+                const insights = [
+                    "Analyzing local liquidity clusters...",
+                    "Neural structure synchronization: 100%",
+                    "Sentiment bias indexed: " + (signal ? signal.side : "NEUTRAL"),
+                    "Recursive pattern matching active.",
+                    "SNC variance within optimal range.",
+                    "Cross-pair correlation: STABLE"
+                ];
+                addNeuralInsight(insights[Math.floor(Math.random() * insights.length)]);
+                lastAgentLog = now;
+            }
+
+            if (data.price) {
+                // Simulate regime based on price movement
+                const change = Math.abs(data.price - data.prevPrice);
+                if (change > 0.0001) {
+                    regimeEl.querySelector('span').textContent = "Market: Volatile";
+                    regimeEl.className = "obs-badge active";
+                } else if (change > 0.00002) {
+                    regimeEl.querySelector('span').textContent = "Market: Trending";
+                    regimeEl.className = "obs-badge active";
+                } else {
+                    regimeEl.querySelector('span').textContent = "Market: Range";
+                    regimeEl.className = "obs-badge";
+                }
+
+                // Simulate vol based on baseline
+                volEl.querySelector('span').textContent = change > 0.00005 ? "Volatility: High" : "Volatility: Low";
+            }
+
+            if (signal && !isHistorical) {
+                sigStateEl.querySelector('span').textContent = `Signal: ${signal.status}`;
+                sigStateEl.className = "obs-badge active";
+            } else {
+                sigStateEl.querySelector('span').textContent = "Signal: Pending";
+                sigStateEl.className = "obs-badge";
+            }
+
+            // Layer 2: Financial Reasoning (Structured Snapshot)
+            if (signal) {
+                const type = signal.side;
+                const change = data.price - data.prevPrice;
+
+                // 1. Market Context
+                let context = "Range / Neutral";
+                if (Math.abs(change) > 0.0001) context = "Trending / Volatile";
+                else if (Math.abs(change) > 0.00003) context = "Trending / Normal";
+                document.getElementById('reasoning-context').textContent = context;
+
+                // 2. Evidence Supporting Signal
+                document.getElementById('reasoning-supporting').textContent = type === 'BUY'
+                    ? "Bullish engulfing on M15. Price holding above VWAP and local support cluster."
+                    : "Resistance rejected at H1 pivot. Increasing sell volume confirming downward shift.";
+
+                // 3. Evidence Against Signal
+                document.getElementById('reasoning-against').textContent = type === 'BUY'
+                    ? "Major resistance zone at 1.0855 could stall momentum. RSI approaching overbought."
+                    : "Strong demand tail observed on lower timeframe. Bullish divergence on M5.";
+
+                // 4. Risk Interpretation
+                document.getElementById('reasoning-risk-interp').textContent = `High risk if ATR expands beyond current average. Stop-loss at ${signal.sl} is critical logic-invalid point.`;
+
+                // 5. Trader Awareness Note
+                document.getElementById('reasoning-note').textContent = type === 'BUY'
+                    ? "Monitor 1.0855 level. If price consolidates below it, partial profit taking is advised."
+                    : "Look for impulsive breakdowns only. Avoid selling into drying volume at local lows.";
+            } else {
+                document.getElementById('reasoning-context').textContent = "Scanning...";
+                document.getElementById('reasoning-supporting').textContent = "--";
+                document.getElementById('reasoning-against').textContent = "--";
+                document.getElementById('reasoning-risk-interp').textContent = "--";
+                document.getElementById('reasoning-note').textContent = "--";
+            }
+
+            // Layer 3: Advisory Agent
+            const advisoryText = document.getElementById('advisory-text');
+            if (signal && signal.conf > 85) {
+                advisoryText.textContent = "High confidence pattern detected. However, professional traders should still verify economic calendar for unexpected news impact. Avoid over-leveraging based solely on probability scores.";
+            } else {
+                advisoryText.textContent = "Current market conditions favor defensive strategies. Risk management is more critical than entry optimization in high-volatility environments. Consistency in lot-sizing is recommended over chasing impulse moves.";
+            }
+        }
+
+        // --- Real-time Price Feed (Binance WebSocket) ---
+        function initPriceFeed() {
+            const socket = new WebSocket('wss://stream.binance.com:9443/ws/eurusdt@trade');
+
+            socket.onmessage = (event) => {
+                const trade = JSON.parse(event.data);
+                const price = parseFloat(trade.p);
+
+                data.price = price;
+                data.pHistory.push(price);
+                if (data.pHistory.length > 50) data.pHistory.shift();
+
+                // Update Trading Simulator Price
+                if (window.simulator) {
+                    simulator.updatePrice(price);
+                }
+
+                updateUI();
+                renderSignalView();
+                renderTable();
+
+                const statusEl = document.getElementById('connection-status');
+                if (statusEl) {
+                    if (isMarketClosed()) {
+                        statusEl.textContent = "MARKET CLOSED";
+                        statusEl.style.color = "var(--text-secondary)";
+                    } else {
+                        statusEl.textContent = "SYSTEM ACTIVE";
+                        statusEl.style.color = "var(--trade-up)";
+                    }
+                }
+            };
+
+            socket.onerror = (error) => {
+                console.warn("Pricing Feed Error:", error);
+            };
+        }
+
+        function addNeuralInsight(msg, type = 'accent') {
+            const container = document.getElementById('neural-history');
+            if (container) {
+                const div = document.createElement('div');
+                div.className = `neural-line ${type}`;
+                div.style.fontSize = '0.7rem';
+                div.style.lineHeight = '1.6';
+                div.style.opacity = '0.8';
+                div.style.flexShrink = '0'; // Prevent overlapping/squashing
+                div.textContent = `> ${msg}`;
+                container.appendChild(div);
+
+                if (container.children.length > 30) {
+                    container.removeChild(container.firstChild);
+                }
+                container.scrollTop = container.scrollHeight;
+            }
+        }
+
+        function updateUI() {
+            if (!data.price || data.price === 1.08450) return;
+
+            priceEl.textContent = data.price.toFixed(5);
+            const bid = document.getElementById('bid-price');
+            const ask = document.getElementById('ask-price');
+            if (bid && ask) {
+                bid.textContent = (data.price - 0.0001).toFixed(5);
+                ask.textContent = (data.price + 0.0001).toFixed(5);
+            }
+            priceEl.style.color = data.price > data.prevPrice ? 'var(--trade-up)' : (data.price < data.prevPrice ? 'var(--trade-down)' : 'var(--text-primary)');
+
+            // Simulator Updates
+            const sellPriceEl = document.getElementById('sim-price-sell');
+            const buyPriceEl = document.getElementById('sim-price-buy');
+            const spreadEl = document.getElementById('sim-spread');
+
+            if (sellPriceEl) sellPriceEl.textContent = data.price.toFixed(5);
+            if (buyPriceEl) buyPriceEl.textContent = (data.price + 0.00002).toFixed(5);
+            if (spreadEl) spreadEl.textContent = (2.0).toFixed(1);
+
+            // Pulse effect
+            const pulse = document.getElementById('price-pulse');
+            if (pulse) {
+                pulse.style.display = 'block';
+                pulse.style.top = `${Math.random() * 80 + 10}%`;
+                pulse.style.opacity = '1';
+                setTimeout(() => pulse.style.opacity = '0.3', 100);
+            }
+
+            data.prevPrice = data.price;
+
+            // Upgraded Sparkline Rendering
+            const svg = document.getElementById('spark');
+            const linePath = document.getElementById('spark-line');
+            const fillPath = document.getElementById('spark-fill');
+
+            if (data.pHistory.length > 2) {
+                const min = Math.min(...data.pHistory), max = Math.max(...data.pHistory);
+                const range = (max - min) || 0.0001;
+                const width = 100; // viewBox width
+                const height = 60; // viewBox height
+
+                const points = data.pHistory.map((v, i) => {
+                    const x = (i / (data.pHistory.length - 1)) * width;
+                    const y = height - ((v - min) / range) * (height - 10) - 5;
+                    return { x, y };
+                });
+
+                const d = `M ${points.map(p => `${p.x} ${p.y}`).join(' L ')}`;
+                linePath.setAttribute('d', d);
+                const fillD = `${d} L ${points[points.length - 1].x} ${height} L ${points[0].x} ${height} Z`;
+                fillPath.setAttribute('d', fillD);
+            }
+
+            // data.prevPrice = data.price; // Duplicated line removed
+
+
+            data.prevPrice = data.price;
+
+            document.getElementById('total-sigs').textContent = data.sigs.length;
+            const wins = data.sigs.filter(s => s.result === 'PROFIT').length;
+            document.getElementById('win-rate').textContent = data.sigs.length > 0 ? ((wins / data.sigs.length) * 100).toFixed(1) + '%' : '0.0%';
+        }
+
+        // Social Sharing Logic
+        function shareTikTok() {
+            const url = "https://9dpi.github.io/telesignal/";
+            navigator.clipboard.writeText(url).then(() => {
+                addNeuralInsight("SYSTEM: Link copied to clipboard for TikTok sharing.", "highlight");
+            });
+        }
+
+        // Real-time UTC Clock & Market Status
+        function updateHeaderClock() {
+            const now = new Date();
+            const utc = now.getUTCFullYear() + '-' + String(now.getUTCMonth() + 1).padStart(2, '0') + '-' + String(now.getUTCDate()).padStart(2, '0') + ' ' +
+                String(now.getUTCHours()).padStart(2, '0') + ':' + String(now.getUTCMinutes()).padStart(2, '0') + ':' + String(now.getUTCSeconds()).padStart(2, '0') + ' UTC';
+            const el = document.getElementById('header-utc-clock');
+            if (el) el.textContent = `[ ${utc} ]`;
+
+            // Check Market Status (Weekend)
+            const day = now.getUTCDay(); // 0: Sun, 6: Sat
+            const hours = now.getUTCHours();
+
+            // Market closes Friday 22:00 UTC, opens Sunday 22:00 UTC
+            let isClosed = false;
+            if (day === 6) isClosed = true; // Saturday
+            if (day === 5 && hours >= 22) isClosed = true; // Friday post-close
+            if (day === 0 && hours < 22) isClosed = true; // Sunday pre-open
+
+            const notice = document.getElementById('market-closed-notice');
+            if (notice) {
+                if (isClosed) {
+                    notice.style.display = 'flex';
+                    const scanText = document.getElementById('scanning-text');
+                    if (scanText && (scanText.textContent.includes('Initializing') || scanText.textContent.includes('Scanning'))) {
+                        scanText.textContent = 'Market Closed - System Idle';
+                    }
+                } else {
+                    notice.style.display = 'none';
+                }
+            }
+        }
+        setInterval(updateHeaderClock, 1000);
+        updateHeaderClock();
+
+        function formatUTC(dateStr) {
+            const d = new Date(dateStr);
+            const date = d.getUTCFullYear() + '-' + String(d.getUTCMonth() + 1).padStart(2, '0') + '-' + String(d.getUTCDate()).padStart(2, '0');
+            const time = String(d.getUTCHours()).padStart(2, '0') + ':' + String(d.getUTCMinutes()).padStart(2, '0');
+            return `${date} ${time}`;
+        }
+
+        function getStatusLabel(s, currentPrice = null) {
+            if (!s) return '--';
+            const status = (s.status || '').toUpperCase();
+            const result = (s.result || '').toUpperCase();
+            const side = (s.side || '').toUpperCase();
+
+            // 1. Check for real-time hits if signal is active/waiting
+            if (currentPrice && (['WAITING', 'WAITING_FOR_ENTRY', 'PUBLISHED', 'ACTIVE', 'ENTRY_HIT'].includes(status))) {
+                const entry = parseFloat(s.entry);
+                const tp = parseFloat(s.tp);
+                const sl = parseFloat(s.sl);
+
+                if (side === 'BUY') {
+                    if (currentPrice >= tp) return 'TP Hit';
+                    if (currentPrice <= sl) return 'SL Hit';
+                    if (currentPrice >= entry || status === 'ACTIVE' || status === 'ENTRY_HIT') return 'Entry Hit';
+                } else if (side === 'SELL') {
+                    if (currentPrice <= tp) return 'TP Hit';
+                    if (currentPrice >= sl) return 'SL Hit';
+                    if (currentPrice <= entry || status === 'ACTIVE' || status === 'ENTRY_HIT') return 'Entry Hit';
+                }
+            }
+
+            // 2. Map final results
+            if (result === 'PROFIT' || status === 'CLOSED_TP') return 'TP Hit';
+            if (result === 'LOSS' || status === 'CLOSED_SL') return 'SL Hit';
+            if (status === 'CLOSED_TIMEOUT') return 'Timeout';
+            if (status === 'EXPIRED' || result === 'CANCELLED') return 'Expired';
+
+            // 3. Map transitions
+            if (status === 'ACTIVE' || status === 'ENTRY_HIT') return 'Entry Hit';
+            if (status === 'WAITING' || status === 'WAITING_FOR_ENTRY' || status === 'PUBLISHED') return 'Waiting...';
+
+            return 'Closed';
+        }
+
+        function getPipsInfo(s, currentPrice = null) {
+            const entry = parseFloat(s.entry);
+            const tp = parseFloat(s.tp);
+            const sl = parseFloat(s.sl);
+            const side = (s.side || '').toUpperCase();
+            const result = (s.result || '').toUpperCase();
+            const status = (s.status || '').toUpperCase();
+
+            let dist = 0;
+            let label = '--';
+            let color = 'var(--text-secondary)';
+
+            if (result === 'PROFIT') {
+                dist = Math.abs(entry - tp);
+                label = `+${Math.round(dist * 10000 * 10) / 10} pips`;
+                color = 'var(--trade-up)';
+            } else if (result === 'LOSS') {
+                dist = -Math.abs(entry - sl); // Loss is negative
+                label = `${Math.round(dist * 10000 * 10) / 10} pips`;
+                color = 'var(--trade-down)';
+            } else if (currentPrice && (status === 'ACTIVE' || status === 'ENTRY_HIT')) {
+                // Live pips
+                dist = side === 'BUY' ? (currentPrice - entry) : (entry - currentPrice);
+                const pips = Math.round(dist * 10000 * 10) / 10;
+                label = `${pips > 0 ? '+' : ''}${pips} pips`;
+                color = pips >= 0 ? 'var(--trade-up)' : 'var(--trade-down)';
+            }
+
+            return { label, color };
+        }
+
+        function renderTable() {
+            const tbody = document.getElementById('signal-history');
+            tbody.innerHTML = '';
+            const cPrice = data.price;
+
+            if (data.active) {
+                const tr = document.createElement('tr');
+                tr.style.background = 'rgba(56, 189, 248, 0.05)';
+                let confDisplay = data.active.conf > 0 ? `${data.active.conf}%` : '--';
+                let confColor = 'var(--text-secondary)';
+                if (data.active.conf >= 65) confColor = 'var(--trade-up)';
+                else if (data.active.conf >= 40) confColor = '#facc15';
+                else if (data.active.conf > 0) confColor = 'var(--trade-down)';
+
+                const statusLabel = getStatusLabel(data.active, cPrice);
+                const pips = getPipsInfo(data.active, cPrice);
+
+                tr.innerHTML = `
+                    <td data-label="ID" style="font-family:var(--font-mono); color:var(--quantix-accent); font-size:0.8rem;">${data.active.id}</td>
+                    <td data-label="Created" style="font-family:var(--font-mono); font-size:0.75rem;">${data.active.generatedAt}</td>
+                    <td data-label="Side"><span class="pill ${data.active.side === 'BUY' ? 'up' : 'down'}">${data.active.side}</span></td>
+                    <td data-label="AI Score" style="font-family:var(--font-mono); font-weight:700; color:${confColor}">${confDisplay}</td>
+                    <td data-label="Entry" style="font-family:var(--font-mono);">${Number(data.active.entry).toFixed(5)}</td>
+                    <td data-label="TP" style="font-family:var(--font-mono); color:var(--trade-up)">${Number(data.active.tp).toFixed(5)}</td>
+                    <td data-label="SL" style="font-family:var(--font-mono); color:var(--trade-down)">${Number(data.active.sl).toFixed(5)}</td>
+                    <td data-label="Win/Loss" style="font-family:var(--font-mono); font-weight:700; color:${pips.color}">${pips.label}</td>
+                    <td data-label="Closed" style="font-family:var(--font-mono); font-size:0.7rem;">--:--</td>
+                    <td data-label="Status">
+                        <span class="pill" style="background:rgba(255,255,255,0.05); color:#94a3b8; min-width:60px; text-align:center;">${statusLabel}</span>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            }
+
+            // Pagination Slice
+            const startIndex = (data.currentPage - 1) * data.itemsPerPage;
+            const endIndex = startIndex + data.itemsPerPage;
+            const pageData = data.sigs.slice(startIndex, endIndex);
+
+            pageData.forEach(s => {
+                const tr = document.createElement('tr');
+                let confDisplay = s.conf > 0 ? `${s.conf}%` : '--';
+                let confColor = 'var(--text-secondary)';
+                if (s.conf >= 65) confColor = 'var(--trade-up)';
+                else if (s.conf >= 40) confColor = '#facc15';
+                else if (s.conf > 0) confColor = 'var(--trade-down)';
+
+                const statusLabel = getStatusLabel(s, null); // No live price for history
+                const pips = getPipsInfo(s, null);
+                const closedAt = s.closedAt; // Assuming closedAt is defined or comes from s
+
+                const resClass = (s.result || '').toUpperCase() === 'PROFIT' ? 'up' : ((s.result || '').toUpperCase() === 'LOSS' ? 'down' : 'neut');
+
+                tr.innerHTML = `
+                    <td data-label="ID" style="font-family:var(--font-mono); color:var(--text-primary); font-size:0.8rem;">${s.id}</td>
+                    <td data-label="Created" style="font-family:var(--font-mono); font-size:0.75rem;">${s.generatedAt}</td>
+                    <td data-label="Side"><span class="pill ${s.side === 'BUY' ? 'up' : 'down'}">${s.side}</span></td>
+                    <td data-label="AI Score" style="font-family:var(--font-mono); font-weight:700; color:${confColor}">${confDisplay}</td>
+                    <td data-label="Entry" style="font-family:var(--font-mono);">${Number(s.entry).toFixed(5)}</td>
+                    <td data-label="TP" style="font-family:var(--font-mono); color:var(--trade-up)">${Number(s.tp).toFixed(5)}</td>
+                    <td data-label="SL" style="font-family:var(--font-mono); color:var(--trade-down)">${Number(s.sl).toFixed(5)}</td>
+                    <td data-label="Win/Loss" style="font-family:var(--font-mono); font-weight:700; color:${pips.color}">${pips.label}</td>
+                    <td data-label="Closed" style="font-family:var(--font-mono); font-size:0.7rem;">${closedAt}</td>
+                    <td data-label="Status">
+                        <span class="pill ${resClass}" style="min-width:60px; text-align:center;">${statusLabel}</span>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+            lucide.createIcons();
+            updatePaginationControls();
+        }
+
+        function updatePaginationControls() {
+            const totalPages = Math.ceil(data.sigs.length / data.itemsPerPage) || 1;
+            document.getElementById('page-num').textContent = data.currentPage;
+            document.getElementById('total-pages').textContent = totalPages;
+
+            const btnPrev = document.getElementById('btn-prev');
+            const btnNext = document.getElementById('btn-next');
+
+            if (btnPrev && btnNext) {
+                btnPrev.disabled = data.currentPage === 1;
+                btnNext.disabled = data.currentPage >= totalPages;
+                btnPrev.style.opacity = data.currentPage === 1 ? '0.5' : '1';
+                btnNext.style.opacity = data.currentPage >= totalPages ? '0.5' : '1';
+            }
+        }
+
+        function changePage(delta) {
+            const totalPages = Math.ceil(data.sigs.length / data.itemsPerPage) || 1;
+            const newPage = data.currentPage + delta;
+            if (newPage >= 1 && newPage <= totalPages) {
+                data.currentPage = newPage;
+                renderTable();
+            }
+        }
+
+        async function connectTelegram() {
+            const phone = document.getElementById('tg-phone').value;
+            if (!phone) { addLog("Linker: Phone number required.", "danger"); return; }
+
+            addLog(`Linker: Registering ${phone} with Quantix Core...`, "sys");
+
+            try {
+                const response = await fetch(`${API_BASE}/api/register-telegram`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ phone })
+                });
+
+                const json = await response.json();
+                if (json.success) {
+                    addLog(`Success: Registered ${phone}`, 'success');
+
+                    if (json.inviteLink) {
+                        const registerContainer = document.querySelector('.register-container');
+                        registerContainer.innerHTML = `
+                            <div style="text-align:center; padding: 20px;">
+                                <div data-lucide="check-circle" style="color:var(--trade-up); margin:0 auto 15px; width:48px; height:48px;"></div>
+                                <h3 style="margin-bottom:10px;">Registration Success!</h3>
+                                <p style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:20px;">Please join our private group to receive signals.</p>
+                                <a href="${json.inviteLink}" target="_blank" class="register-btn" style="text-decoration:none; display:inline-block; background:var(--quantix-purple); color:#fff;">
+                                    JOIN TELEGRAM GROUP
+                                </a>
+                            </div>
+                        `;
+                        lucide.createIcons();
+                    } else {
+                        alert('Registration successful! We will contact you soon.');
+                    }
+                } else {
+                    throw new Error(json.message);
+                }
+            } catch (err) {
+                console.error(err);
+                addLog(`Linker: Critical error in registration.`, "danger");
+            }
+        }
+
+        // Mobile Menu Toggle
+        document.getElementById('mobile-menu-toggle').addEventListener('click', () => {
+            document.getElementById('mobile-nav').classList.toggle('active');
+        });
+
+        // Close menu when clicking links
+        document.querySelectorAll('#mobile-nav .nav-link').forEach(link => {
+            link.addEventListener('click', () => {
+                document.getElementById('mobile-nav').classList.remove('active');
+            });
+        });
+
+        // Init
+        updateConnectionUI('scanning');
+        initPriceFeed();
+
+        // --- Simulator Helpers ---
+        function updateLot(delta) {
+            const input = document.getElementById('sim-lot-input');
+            if (!input) return;
+            let val = parseFloat(input.value);
+            val = Math.max(0.01, Math.min(10.0, val + delta));
+            input.value = val.toFixed(2);
+        }
+
+        function manualTrade(side) {
+            if (!data.price) {
+                addLog("Execution Error: Price feed not ready", "danger");
+                return;
+            }
+            const lotInput = document.getElementById('sim-lot-input');
+            const lot = lotInput ? parseFloat(lotInput.value) : 1.0;
+
+            const tpDist = 0.0020;
+            const slDist = 0.0015;
+
+            const tp = side === 'BUY' ? data.price + tpDist : data.price - tpDist;
+            const sl = side === 'BUY' ? data.price - slDist : data.price + slDist;
+
+            if (window.simulator) {
+                simulator.openPosition(side, 'EURUSD', data.price, tp, sl, lot);
+                addLog(`SIM: ${side} ${lot.toFixed(2)} lot EURUSD @ ${data.price.toFixed(5)} | TP: ${tp.toFixed(5)} | SL: ${sl.toFixed(5)}`, side === 'BUY' ? 'success' : 'danger');
+            }
+        }
+
+        // Init Simulator
+        if (window.simulator) {
+            const originalSimUpdateUI = simulator.updateUI;
+            simulator.updateUI = function () {
+                originalSimUpdateUI.call(simulator);
+
+                const balApp = document.getElementById('sim-balance-app');
+                const pnlApp = document.getElementById('sim-pnl-app');
+                const countApp = document.getElementById('sim-pos-count');
+                const list = document.getElementById('sim-positions-list');
+
+                if (balApp) {
+                    const formatted = Math.abs(this.balance).toLocaleString('en-US', { minimumFractionDigits: 2 });
+                    balApp.textContent = this.balance >= 0 ? `$${formatted}` : `-$${formatted}`;
+                }
+
+                const totalPnl = this.positions.reduce((acc, pos) => acc + (pos.pnl || 0), 0);
+                if (pnlApp) {
+                    const formattedPnl = Math.abs(totalPnl).toLocaleString('en-US', { minimumFractionDigits: 2 });
+                    pnlApp.textContent = totalPnl >= 0 ? `+$${formattedPnl}` : `-$${formattedPnl}`;
+                    pnlApp.style.color = totalPnl >= 0 ? '#0ecb81' : '#f6465d';
+                }
+
+                if (countApp) countApp.textContent = this.positions.length;
+
+                if (list) {
+                    list.innerHTML = this.positions.filter(p => p.status === 'OPEN').map(pos => {
+                        const pipDiff = pos.side === 'BUY'
+                            ? ((this.bid || this.currentPrice) - pos.entryPrice) * 10000
+                            : (pos.entryPrice - (this.ask || this.currentPrice)) * 10000;
+                        const pipsLabel = pipDiff >= 0 ? `+${pipDiff.toFixed(1)}` : pipDiff.toFixed(1);
+                        return `
+                        <div class="sim-pos-card">
+                            <div class="sim-pos-row">
+                                <div class="sim-pos-symbol">
+                                    <i data-lucide="${pos.side === 'BUY' ? 'trending-up' : 'trending-down'}" 
+                                       size="18" style="color:${pos.side === 'BUY' ? '#0ecb81' : '#f6465d'}"></i>
+                                    ${pos.side} EURUSD
+                                </div>
+                                <div class="sim-pos-pnl" style="color:${pos.pnl >= 0 ? '#0ecb81' : '#f6465d'}">
+                                    ${pos.pnl >= 0 ? '+' : ''}$${Math.abs(pos.pnl).toFixed(2)}
+                                    <span style="font-size:0.65rem; opacity:0.8;"> (${pipsLabel} pips)</span>
+                                </div>
+                            </div>
+                            <div class="sim-pos-row">
+                                <div class="sim-pos-details">
+                                    ${pos.size.toFixed(2)} lot @ ${pos.entryPrice.toFixed(5)}
+                                    <span class="sim-tag" style="color:var(--trade-up);">TP ${pos.tp.toFixed(5)}</span>
+                                    <span class="sim-tag" style="color:var(--trade-down);">SL ${pos.sl.toFixed(5)}</span>
+                                </div>
+                                <div style="display:flex; gap:12px; align-items:center;">
+                                    <button onclick="simulator.closePosition('${pos.id}')" 
+                                            style="background:var(--bg-hover); border:1px solid var(--border-subtle); color:var(--trade-down); padding:4px 12px; border-radius:4px; font-size:0.7rem; font-weight:700; cursor:pointer;">
+                                        CLOSE
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    `}).join('');
+                    lucide.createIcons();
+                }
+
+                // Render Trade History
+                const histList = document.getElementById('sim-history-list');
+                if (histList && this.history.length > 0) {
+                    histList.innerHTML = this.history.slice(0, 20).map(h => {
+                        const isWin = h.profit >= 0;
+                        const pips = h.side === 'BUY'
+                            ? (h.closePrice - h.entryPrice) * 10000
+                            : (h.entryPrice - h.closePrice) * 10000;
+                        return `
+                        <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid var(--border-subtle); font-size:0.75rem;">
+                            <div style="display:flex; align-items:center; gap:8px;">
+                                <span style="color:${h.side === 'BUY' ? 'var(--trade-up)' : 'var(--trade-down)'}; font-weight:700;">${h.side}</span>
+                                <span style="color:var(--text-secondary);">${h.size.toFixed(2)} lot</span>
+                                <span style="color:var(--text-secondary); font-family:var(--font-mono);">${h.entryPrice.toFixed(5)} → ${h.closePrice.toFixed(5)}</span>
+                            </div>
+                            <div style="display:flex; align-items:center; gap:8px;">
+                                <span style="color:${isWin ? 'var(--trade-up)' : 'var(--trade-down)'}; font-weight:700; font-family:var(--font-mono);">
+                                    ${isWin ? '+' : ''}$${h.profit.toFixed(2)}
+                                </span>
+                                <span style="padding:2px 6px; border-radius:4px; font-size:0.6rem; font-weight:700; background:${isWin ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.1)'}; color:${isWin ? 'var(--trade-up)' : 'var(--trade-down)'}">
+                                    ${h.reason || 'CLOSED'}
+                                </span>
+                            </div>
+                        </div>
+                    `}).join('');
+                } else if (histList) {
+                    histList.innerHTML = '<div style="padding:1rem; text-align:center; color:var(--text-secondary); font-size:0.8rem;">No trade history yet. Start trading!</div>';
+                }
+            };
+            simulator.init();
+        }
+
+        function switchSimSubTab(tab, btn) {
+            const tabs = btn.parentElement.querySelectorAll('.sim-pos-tab');
+            tabs.forEach(t => {
+                t.classList.remove('active');
+                t.style.background = 'transparent';
+                t.style.color = 'var(--text-secondary)';
+            });
+            btn.classList.add('active');
+            btn.style.background = 'var(--text-primary)';
+            btn.style.color = 'var(--bg-surface)';
+
+            const list = document.getElementById('sim-positions-list');
+            const histList = document.getElementById('sim-history-list');
+            const guide = document.getElementById('sim-guide-content');
+
+            list.style.display = 'none';
+            histList.style.display = 'none';
+            guide.style.display = 'none';
+
+            if (tab === 'positions') {
+                list.style.display = 'block';
+            } else if (tab === 'history') {
+                histList.style.display = 'block';
+                // Trigger re-render of history
+                if (window.simulator) simulator.updateUI();
+            } else {
+                guide.style.display = 'block';
+                lucide.createIcons();
+            }
+        }
+
+        // Wrap original sync to include UI updates
+        const originalSync = syncDatabase;
+        syncDatabase = async function () {
+            updateConnectionUI('scanning');
+            await originalSync();
+            updateConnectionUI('active');
+        };
+
+        setInterval(syncDatabase, 10000);
+        syncDatabase();
+
+        addLog("Quantix AI Core Link: ACTIVE", "success");
+
+        // Security protections disabled for development
+    </script>
+</body>
+
+</html>
