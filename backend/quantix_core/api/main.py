@@ -9,6 +9,7 @@ from datetime import datetime, timezone
 from fastapi import FastAPI
 from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from loguru import logger
 import os
 
@@ -29,6 +30,12 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# ── Static Files (Assets) ────────────────────────────────────────
+
+# Mount static files to serve style.css, simulator.js etc.
+# We mount last to avoid shadowing API routes.
+app.mount("/static", StaticFiles(directory="."), name="static")
 
 
 # ── Dashboard UI ─────────────────────────────────────────────────

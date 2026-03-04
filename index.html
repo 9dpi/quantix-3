@@ -5,9 +5,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Signal Genius AI | Institutional Trading</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="/static/style.css">
     <script src="https://unpkg.com/lucide@latest"></script>
-    <script src="simulator.js"></script>
+    <script src="/static/simulator.js"></script>
     <link
         href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap"
         rel="stylesheet">
@@ -2413,8 +2413,8 @@
                         id: s.id,
                         side: s.direction || s.side,
                         entry: s.entry_price,
-                        tp: s.take_profit,
-                        sl: s.stop_loss,
+                        tp: s.tp,
+                        sl: s.sl,
                         status: s.state,
                         conf: calcConfidence(s.release_confidence || s.confidence || 0),
                         generatedAt: s.generated_at ? new Date(s.generated_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }) : '--:--',
@@ -2435,8 +2435,8 @@
                         id: s.id,
                         side: s.direction || s.side,
                         entry: s.entry_price,
-                        tp: s.take_profit,
-                        sl: s.stop_loss,
+                        tp: s.tp,
+                        sl: s.sl,
                         result: s.result || (s.state.includes('TP') ? 'PROFIT' : (s.state.includes('SL') ? 'LOSS' : 'NEUTRAL')),
                         status: s.state,
                         conf: calcConfidence(s.release_confidence || s.confidence || 0),
